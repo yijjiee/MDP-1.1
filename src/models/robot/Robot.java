@@ -42,7 +42,7 @@ public class Robot {
 		WC = new Sensor(SENSOR_SR, row, col - 1, Direction.WEST);
 		EC = new Sensor(SENSOR_LR, row + 1, col + 1, Direction.EAST);
 	}
-	
+
 	public void setRobotPos(int row, int col) {
 		this.row = row;
 		this.col = col;
@@ -70,6 +70,30 @@ public class Robot {
 	
 	public void setState(RobotState state) {
 		this.state = state;
+	}
+	
+	public Direction getRobotDir() {
+		return robotDir;
+	}
+	
+	public Sensor getNL() {
+		return NL;
+	}
+
+	public Sensor getNC() {
+		return NC;
+	}
+
+	public Sensor getNR() {
+		return NR;
+	}
+
+	public Sensor getWC() {
+		return WC;
+	}
+
+	public Sensor getEC() {
+		return EC;
 	}
 	
 	public void move(Movement move) {

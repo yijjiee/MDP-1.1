@@ -72,7 +72,7 @@ public class Sensor {
 			int x = col + (colInc*i);
 			int y = row + (rowInc*i);
 			
-			if (x < 0 || y < 0)
+			if (x < 0 || y < 0 && x > 14 || y > 19)
 				return - 1;
 			
 			map.setCellState(y, x, CellState.NORMAL);
