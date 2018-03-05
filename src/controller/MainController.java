@@ -1,7 +1,6 @@
 package controller;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 
 import interfaces.MapChangedInterface;
@@ -10,22 +9,25 @@ import models.map.Map;
 import models.robot.Movement;
 import models.robot.Robot;
 import models.robot.RobotState;
-import models.robot.Sensor;
 
 public class MainController {
-	private List<MapChangedInterface> listeners;
+	private List<MapChangedInterface> mapListeners;
 	private Map map;
 	private Map cachedMap;
 	private Robot robot;
 	
 	public MainController() {
-		listeners = new ArrayList<>();
+		mapListeners = new ArrayList<>();
 		map = new Map();
 		robot = new Robot(1, 1, RobotState.SIMULATION);
 	}
 	
 	public Map getMap() {
 		return map;
+	}
+	
+	public Map getCachedMap() {
+		return cachedMap;
 	}
 	
 	public Robot getRobot() {
@@ -47,23 +49,22 @@ public class MainController {
 					map.setCellState(row, col, CellState.UNEXPLORED);
 			}
 		}
+		robot.sense(cachedMap, map);
 		
 		if (robot.getState() == RobotState.SIMULATION) {
-			Hashtable<Sensor, Integer> sensorNval = robot.sense(cachedMap, map);
-			for (Sensor sensor: sensorNval.keySet()) {
-			}
+			robot.move(Movement.FORWARD);
 		}
 		
-		for(MapChangedInterface listener: listeners)
+		for(MapChangedInterface listener: mapListeners)
 			listener.onMapChanged();
 	}
 	
 	public boolean addMapChangedListener(MapChangedInterface listener) {
-		return listeners.add(listener);
+		return mapListeners.add(listener);
 	}
 	
 	public boolean removeMapChangedListener(MapChangedInterface listener) {
-		return listeners.remove(listener);
+		return mapListeners.remove(listener);
 	}
  	
 }

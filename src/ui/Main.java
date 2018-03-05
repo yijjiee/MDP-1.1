@@ -80,6 +80,10 @@ public class Main extends Application {
 	public VBox getMenuPane() {
 		return menuPane;
 	}
+	
+	public Circle getRobotPane() {
+		return robotPane;
+	}
 
 	public ComboBox<String> getExecBox() {
 		return execBox;

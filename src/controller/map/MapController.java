@@ -11,6 +11,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Circle;
 import models.map.CellState;
 import models.map.Map;
 import ui.Main;
@@ -29,6 +30,7 @@ public class MapController {
 		mainMgr.addMapChangedListener(this::initialize);
 		mainMgr.getMap().addListeners(this::onMapStateChanged);
 		application.getExploreBtn().setOnMouseClicked(this::onExploreClicked);
+		mainMgr.getRobot().addListeners(this::onRobotPosChanged);
 		
 		initialize();
 	}
@@ -91,5 +93,16 @@ public class MapController {
 	
 	public void onExploreClicked(MouseEvent event) {
 		mainMgr.explore();
+	}
+	
+	public void onRobotPosChanged() {
+		mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
+		
+		int y = (mainMgr.getRobot().getRow() - 1) * 39;
+		int x = (mainMgr.getRobot().getCol() - 1) * 39;
+		
+		Circle robot = application.getRobotPane();
+		robot.setLayoutX(robot.getLayoutX() + x);
+		robot.setLayoutY(robot.getLayoutY() - y);
 	}
 }

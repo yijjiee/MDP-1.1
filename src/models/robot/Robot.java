@@ -6,8 +6,10 @@
 
 package models.robot;
 
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.List;
 
+import interfaces.RobotInterface;
 import models.map.Map;
 
 public class Robot {
@@ -26,10 +28,13 @@ public class Robot {
 	private boolean finish;
 	private RobotState state;
 	
+	private List<RobotInterface> listeners = new ArrayList<RobotInterface>();
+	
 	public Robot(int row, int col, RobotState state) {
 		this.row = row;
 		this.col = col;
 		this.state = state;
+		robotDir = Direction.NORTH;
 		
 		NL = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.NORTH);
 		NC = new Sensor(SENSOR_SR, row + 1, col, Direction.NORTH);
@@ -114,25 +119,56 @@ public class Robot {
 						robotDir = Direction.NORTH; break;
 				} break;
 		}
+
+		updateSensorsLocation();
+		notifyChange();
 		
 		if (row == Map.END_ROW && col == Map.END_COL)
 			finish = true;
 	}
 	
-	public Hashtable<Sensor, Integer> sense(Map cachedMap, Map map) {
-		Hashtable<Sensor, Integer> sensorNval = new Hashtable<Sensor, Integer>();
-		int nlO = NL.sense(cachedMap, map);
-		int ncO = NC.sense(cachedMap, map);
-		int nrO = NR.sense(cachedMap, map);
-		int wcO = WC.sense(cachedMap, map);
-		int ecO = EC.sense(cachedMap, map);
-		
-		sensorNval.put(NL, nlO);
-		sensorNval.put(NC, ncO);
-		sensorNval.put(NR, nrO);
-		sensorNval.put(WC, wcO);
-		sensorNval.put(EC, ecO);
-		
-		return sensorNval;
+	public void sense(Map cachedMap, Map map) {
+		NL.sense(cachedMap, map);
+		NC.sense(cachedMap, map);
+		NR.sense(cachedMap, map);
+		WC.sense(cachedMap, map);
+		EC.sense(cachedMap, map);
+	}
+	
+	public void addListeners(RobotInterface listener) {
+		listeners.add(listener);
+	}
+	
+	public void notifyChange() {
+		for (RobotInterface listener : listeners)
+			listener.onRobotMove();
+	}
+	
+	public void updateSensorsLocation() {
+		if (robotDir == Direction.NORTH) {
+			NL.setSensor(row + 1, col - 1, Direction.NORTH);
+			NC.setSensor(row + 1, col, Direction.NORTH);
+			NR.setSensor(row + 1, col + 1, Direction.NORTH);
+			WC.setSensor(row, col - 1, Direction.WEST);
+			EC.setSensor(row + 1, col + 1, Direction.EAST);
+		} else if (robotDir == Direction.SOUTH) {
+			NL.setSensor(row - 1, col + 1, Direction.SOUTH);
+			NC.setSensor(row - 1, col, Direction.SOUTH);
+			NR.setSensor(row - 1, col - 1, Direction.SOUTH);
+			WC.setSensor(row, col + 1, Direction.EAST);
+			EC.setSensor(row - 1, col - 1, Direction.WEST);
+		} else if (robotDir == Direction.EAST) {
+			NL.setSensor(row + 1, col + 1, Direction.EAST);
+			NC.setSensor(row, col + 1, Direction.EAST);
+			NR.setSensor(row - 1, col + 1, Direction.EAST);
+			WC.setSensor(row + 1, col, Direction.NORTH);
+			EC.setSensor(row - 1, col + 1, Direction.SOUTH);
+		} else {
+			NL.setSensor(row - 1, col - 1, Direction.WEST);
+			NC.setSensor(row, col - 1, Direction.WEST);
+			NR.setSensor(row + 1, col - 1, Direction.WEST);
+			WC.setSensor(row - 1, col, Direction.SOUTH);
+			EC.setSensor(row + 1, col - 1, Direction.NORTH);
+		}
 	}
 }

@@ -15,6 +15,5 @@ public class RobotController {
 	public RobotController(Main application, Map map, Robot robot) {
 		this.application = application;
 		this.map = map;
-		
 	}
 }

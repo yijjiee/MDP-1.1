@@ -54,18 +54,17 @@ public class Sensor {
 		this.sensorFace = sensorFace;
 	}
 	
-	public int sense(Map cachedMap, Map realMap) {
+	public void sense(Map cachedMap, Map realMap) {
 		switch(sensorFace) {
 			case NORTH:
-				return getObstacle(cachedMap, realMap, 1, 0);
+				getObstacle(cachedMap, realMap, 1, 0); break;
 			case SOUTH:
-				return getObstacle(cachedMap, realMap, -1, 0);
+				getObstacle(cachedMap, realMap, -1, 0); break;
 			case EAST:
-				return getObstacle(cachedMap, realMap, 0, 1);				
+				getObstacle(cachedMap, realMap, 0, 1); break;	
 			case WEST:
-				return getObstacle(cachedMap, realMap, 0, -1);
+				getObstacle(cachedMap, realMap, 0, -1); break;
 		}
-		return -1;
 	}
 	
 	public int getObstacle(Map cachedMap, Map map, int rowInc, int colInc) {
