@@ -6,6 +6,8 @@
 
 package models.robot;
 
+import java.util.Hashtable;
+
 import models.map.Map;
 
 public class Robot {
@@ -13,16 +15,14 @@ public class Robot {
 	private int col;
 	private Direction robotDir;
 	
-	public static final int SENSOR_SRLR = 1;
-	public static final int SENSOR_SRHR = 2;
-	public static final int SENSOR_LRLR = 3;
-	public static final int SENSOR_LRHR = 4;
+	public static final int SENSOR_SR = 4;
+	public static final int SENSOR_LR = 6;
 	
 	/* Sensors and data can be get from ARDUINO below
 	 *	Speed
-	 *	Sensors:
-	 *		Placement of sensors
-	 */
+	 *	Sensors:*/
+	private Sensor NL, NC, NR, WC, EC;
+	
 	private boolean finish;
 	private RobotState state;
 	
@@ -30,6 +30,12 @@ public class Robot {
 		this.row = row;
 		this.col = col;
 		this.state = state;
+		
+		NL = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.NORTH);
+		NC = new Sensor(SENSOR_SR, row + 1, col, Direction.NORTH);
+		NR = new Sensor(SENSOR_SR, row + 1, col + 1, Direction.NORTH);
+		WC = new Sensor(SENSOR_SR, row, col - 1, Direction.WEST);
+		EC = new Sensor(SENSOR_LR, row + 1, col + 1, Direction.EAST);
 	}
 	
 	public void setRobotPos(int row, int col) {
@@ -111,5 +117,22 @@ public class Robot {
 		
 		if (row == Map.END_ROW && col == Map.END_COL)
 			finish = true;
+	}
+	
+	public Hashtable<Sensor, Integer> sense(Map cachedMap, Map map) {
+		Hashtable<Sensor, Integer> sensorNval = new Hashtable<Sensor, Integer>();
+		int nlO = NL.sense(cachedMap, map);
+		int ncO = NC.sense(cachedMap, map);
+		int nrO = NR.sense(cachedMap, map);
+		int wcO = WC.sense(cachedMap, map);
+		int ecO = EC.sense(cachedMap, map);
+		
+		sensorNval.put(NL, nlO);
+		sensorNval.put(NC, ncO);
+		sensorNval.put(NR, nrO);
+		sensorNval.put(WC, wcO);
+		sensorNval.put(EC, ecO);
+		
+		return sensorNval;
 	}
 }

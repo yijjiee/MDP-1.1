@@ -1,17 +1,21 @@
 package controller;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 import interfaces.MapChangedInterface;
 import models.map.CellState;
 import models.map.Map;
+import models.robot.Movement;
 import models.robot.Robot;
 import models.robot.RobotState;
+import models.robot.Sensor;
 
 public class MainController {
 	private List<MapChangedInterface> listeners;
 	private Map map;
+	private Map cachedMap;
 	private Robot robot;
 	
 	public MainController() {
@@ -30,6 +34,7 @@ public class MainController {
 	
 	public void explore() {
 		// 1) Cache old map state
+		cachedMap = map;
 		
 		// 2) Create new map state with all unexplored regions
 		map = new Map();
@@ -40,6 +45,12 @@ public class MainController {
 					map.setCellState(row, col, CellState.NORMAL);
 				else
 					map.setCellState(row, col, CellState.UNEXPLORED);
+			}
+		}
+		
+		if (robot.getState() == RobotState.SIMULATION) {
+			Hashtable<Sensor, Integer> sensorNval = robot.sense(cachedMap, map);
+			for (Sensor sensor: sensorNval.keySet()) {
 			}
 		}
 		
