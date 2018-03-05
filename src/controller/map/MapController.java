@@ -30,6 +30,7 @@ public class MapController {
 		mainMgr.addMapChangedListener(this::initialize);
 		mainMgr.getMap().addListeners(this::onMapStateChanged);
 		application.getExploreBtn().setOnMouseClicked(this::onExploreClicked);
+		mainMgr.addMapChangedListener(this::onMapChanged);
 		mainMgr.getRobot().addListeners(this::onRobotPosChanged);
 		
 		initialize();
@@ -44,6 +45,11 @@ public class MapController {
 			
 			onMapStateChanged(Map.MAP_ROWS - row - 1, col);
 		}
+	}
+	
+	public void onMapChanged() {
+		mainMgr.getCachedMap().removeListeners(this::onMapStateChanged);
+		mainMgr.getMap().addListeners(this::onMapStateChanged);
 	}
 
 	public void onMapStateChanged(int row, int col) {
@@ -93,16 +99,17 @@ public class MapController {
 	
 	public void onExploreClicked(MouseEvent event) {
 		mainMgr.explore();
+		application.getExploreBtn().setDisable(true);
 	}
 	
 	public void onRobotPosChanged() {
-		mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
-		
-		int y = (mainMgr.getRobot().getRow() - 1) * 39;
-		int x = (mainMgr.getRobot().getCol() - 1) * 39;
+		double y = (Map.MAP_ROWS - mainMgr.getRobot().getRow() - 1) * 39 + 29.5;
+		double x = (mainMgr.getRobot().getCol() + 1) * 39;
 		
 		Circle robot = application.getRobotPane();
-		robot.setLayoutX(robot.getLayoutX() + x);
-		robot.setLayoutY(robot.getLayoutY() - y);
+		robot.setLayoutX(x);
+		robot.setLayoutY(y);
+
+		mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
 	}
 }

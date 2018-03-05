@@ -2,6 +2,10 @@ package controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import interfaces.MapChangedInterface;
 import models.map.CellState;
@@ -15,6 +19,8 @@ public class MainController {
 	private Map map;
 	private Map cachedMap;
 	private Robot robot;
+	
+	private final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
 	
 	public MainController() {
 		mapListeners = new ArrayList<>();
@@ -52,7 +58,14 @@ public class MainController {
 		robot.sense(cachedMap, map);
 		
 		if (robot.getState() == RobotState.SIMULATION) {
-			robot.move(Movement.FORWARD);
+			final Runnable moveForward = new Runnable() { public void run() {
+				robot.move(Movement.FORWARD);
+			}};
+			final ScheduledFuture<?> beeperHandle =
+		       exec.scheduleAtFixedRate(moveForward, 1, 1, TimeUnit.SECONDS);
+		     exec.schedule(new Runnable() {
+		       public void run() { beeperHandle.cancel(true); }
+		     }, 60, TimeUnit.SECONDS);
 		}
 		
 		for(MapChangedInterface listener: mapListeners)
@@ -65,6 +78,5 @@ public class MainController {
 	
 	public boolean removeMapChangedListener(MapChangedInterface listener) {
 		return mapListeners.remove(listener);
-	}
- 	
+	}	
 }

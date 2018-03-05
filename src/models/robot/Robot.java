@@ -77,9 +77,9 @@ public class Robot {
 			case NORTH:
 				switch(move) {
 					case FORWARD:
-						row++; break;
+						row += 1; break;
 					case BACKWARD:
-						row--; break;
+						row -= 1; break;
 					case TURNLEFT:
 						robotDir = Direction.WEST; break;
 					case TURNRIGHT:
@@ -88,9 +88,9 @@ public class Robot {
 			case SOUTH:
 				switch(move) {
 					case FORWARD:
-						row--; break;
+						row -= 1; break;
 					case BACKWARD:
-						row++; break;
+						row += 1; break;
 					case TURNLEFT:
 						robotDir = Direction.EAST; break;
 					case TURNRIGHT:
@@ -99,9 +99,9 @@ public class Robot {
 			case EAST:
 				switch(move) {
 					case FORWARD:
-						col++; break;
+						col += 1; break;
 					case BACKWARD:
-						col--; break;
+						col -= 1; break;
 					case TURNLEFT:
 						robotDir = Direction.NORTH; break;
 					case TURNRIGHT:
@@ -110,9 +110,9 @@ public class Robot {
 			case WEST:
 				switch(move) {
 					case FORWARD:
-						col--; break;
+						col -= 1; break;
 					case BACKWARD:
-						col++; break;
+						col += 1; break;
 					case TURNLEFT:
 						robotDir = Direction.SOUTH; break;
 					case TURNRIGHT:

@@ -49,6 +49,10 @@ public class Map {
 		listeners.add(ml);
 	}
 	
+	public void removeListeners(MapListener ml) {
+		listeners.remove(ml);
+	}
+	
 	public void notifyChange(int row, int col) {
 		for (MapListener ml : listeners)
 			ml.onMapStateChange(row, col);
