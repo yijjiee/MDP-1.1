@@ -40,6 +40,7 @@ public class Main extends Application {
 	private TextField tlField;
 	private TextField clField;
 	private Button exploreBtn;
+	private Button fastestPathBtn;
 	
 	public final static String KEY_SIMULATION = "SIMULATION";
 	public final static String KEY_PHYSICAL = "PHYSICAL";
@@ -94,6 +95,10 @@ public class Main extends Application {
 	
 	public Button getExploreBtn() {
 		return exploreBtn;
+	}
+	
+	public Button getFastestPathBtn() {
+		return fastestPathBtn;
 	}
 	
 	public TextField getTimeLimitField() {
@@ -315,10 +320,10 @@ public class Main extends Application {
 		HBox startBox = new HBox();
 		exploreBtn = new Button("Explore");
 		exploreBtn.setFont(new Font(16));
-		Button fpathBtn = new Button("Fastest Path");
-		fpathBtn.setFont(new Font(16));
+		fastestPathBtn = new Button("Fastest Path");
+		fastestPathBtn.setFont(new Font(16));
 		startBox.setSpacing(20);
-		startBox.getChildren().addAll(exploreBtn, fpathBtn);
+		startBox.getChildren().addAll(exploreBtn, fastestPathBtn);
 		
 		menuPane.getChildren().addAll(lsMap, execPane, owPane, /*scLabel, scBox, ecLabel, ecBox,*/ mdf1Label, mdf1, mdf2Label, mdf2, tlBox, clBox, startBox);
 		

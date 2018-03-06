@@ -2,9 +2,12 @@ package controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import interfaces.MapChangedInterface;
 import models.algo.Exploration;
+import models.algo.FastestPath;
+import models.map.Cell;
 import models.map.CellState;
 import models.map.MapModel;
 import models.robot.Robot;
@@ -16,14 +19,22 @@ public class MainController {
 	private MapModel cachedMap;
 	private Robot robot;
 	private Exploration exploration;
+	private FastestPath fastestPathModel;
 	private double timeLimit;
 	private double coverageLimit;
+	private Stack<Cell> fastestPath;
 	
 	
 	public MainController() {
 		mapListeners = new ArrayList<>();
 		map = new MapModel();
 		robot = new Robot(1, 1, RobotState.SIMULATION);
+		
+		for (int i = 0; i < MapModel.MAP_ROWS; i++) {
+			for (int j = 0; j < MapModel.MAP_COLS; j++) {
+				map.setCellState(i, j, CellState.NORMAL);
+			}
+		}
 	}
 
 	public MapModel getMap() {
@@ -69,11 +80,74 @@ public class MainController {
 			listener.onMapChanged();
 	}
 	
+	public void runFastestPath() {
+		fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap());
+		fastestPath = fastestPathModel.startFastestPath();
+		
+		for (Cell cell : fastestPath) {
+			System.out.println("Row: " + cell.getRow() + " Column: " + cell.getCol());
+		}
+	}
+	
 	public boolean addMapChangedListener(MapChangedInterface listener) {
 		return mapListeners.add(listener);
 	}
 	
 	public boolean removeMapChangedListener(MapChangedInterface listener) {
 		return mapListeners.remove(listener);
+	}
+	
+	public MapModel transformMap() {
+		MapModel tempMap = new MapModel();
+		for (int i = 0; i < MapModel.MAP_ROWS; i++) {
+			for (int j = 0; j < MapModel.MAP_COLS; j++) {
+				tempMap.setCellState(i, j, map.getCellState(i, j));
+			}
+		}
+
+		for (int i = 0; i < MapModel.MAP_ROWS - 1; i++) {
+			for (int j = 0; j < MapModel.MAP_COLS - 1; j++) {
+				if (i == 0 && map.getCellState(i, j) == CellState.OBSTACLE) {
+					tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
+					tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
+					tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
+					tempMap.setCellState(i + 1, j + 1, CellState.OBSTACLE);
+					tempMap.setCellState(i + 1, j - 1, CellState.OBSTACLE);
+				} else if (i == 19 && map.getCellState(i, j) == CellState.OBSTACLE) {
+					tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
+					tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
+					tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
+					tempMap.setCellState(i - 1, j + 1, CellState.OBSTACLE);
+					tempMap.setCellState(i - 1, j - 1, CellState.OBSTACLE);
+				} else if (j == 0 && i > 0 && i < 19 && map.getCellState(i, j) == CellState.OBSTACLE) {
+					tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
+					tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
+					tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
+					tempMap.setCellState(i + 1, j + 1, CellState.OBSTACLE);
+					tempMap.setCellState(i - 1, j + 1, CellState.OBSTACLE);
+				} else if (j == 14 && i > 0 && i < 19 && map.getCellState(i, j) == CellState.OBSTACLE) {
+					tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
+					tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
+					tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
+					tempMap.setCellState(i + 1, j - 1, CellState.OBSTACLE);
+					tempMap.setCellState(i - 1, j - 1, CellState.OBSTACLE);
+				} else {
+					if (map.getCellState(i, j) == CellState.OBSTACLE) {
+						tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
+						tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
+						tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
+						tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
+						tempMap.setCellState(i + 1, j - 1, CellState.OBSTACLE);
+						tempMap.setCellState(i - 1, j - 1, CellState.OBSTACLE);
+						tempMap.setCellState(i + 1, j + 1, CellState.OBSTACLE);
+						tempMap.setCellState(i - 1, j + 1, CellState.OBSTACLE);
+					}
+				}
+				
+				System.out.print(tempMap.getCellState(i, j) + " ");
+			}
+			System.out.println();
+		}
+		return tempMap;
 	}
 }

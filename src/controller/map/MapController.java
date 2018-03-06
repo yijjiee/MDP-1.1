@@ -32,6 +32,7 @@ public class MapController {
 		mainMgr.addMapChangedListener(this::initialize);
 		mainMgr.getMap().addListeners(this::onMapStateChanged);
 		application.getExploreBtn().setOnMouseClicked(this::onExploreClicked);
+		application.getFastestPathBtn().setOnMouseClicked(this::onFastestPathClicked);
 		mainMgr.addMapChangedListener(this::onMapChanged);
 		mainMgr.getRobot().addListeners(this::onRobotPosChanged);
 		
@@ -106,6 +107,11 @@ public class MapController {
 		mainMgr.setTimeLimit(Integer.valueOf(application.getTimeLimitField().getText()));
 		mainMgr.explore();
 		application.getExploreBtn().setDisable(true);
+	}
+	
+	public void onFastestPathClicked(MouseEvent event) {
+		mainMgr.runFastestPath();
+		application.getFastestPathBtn().setDisable(true);
 	}
 	
 	public void onRobotPosChanged() {

@@ -14,8 +14,8 @@ public class MapModel {
 	public static final int MAP_ROWS = 20;
 	public static final int MAP_COLS = 15;
 
-	public static final int END_ROW = 13;
-	public static final int END_COL = 18;
+	public static final int END_ROW = 18;
+	public static final int END_COL = 13;
 	public static final int START_ROW = 1;
 	public static final int START_COL = 1;
 	
@@ -25,6 +25,10 @@ public class MapModel {
 
 	public Cell[][] getGrid() {
 		return grid;
+	}
+	
+	public Cell getCell(int row, int col) {
+		return grid[row][col];
 	}
 	
 	public CellState getCellState(int row, int col) {

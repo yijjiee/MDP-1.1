@@ -57,7 +57,7 @@ public class Exploration {
 	       public void run() { scheduler.cancel(true); }
 	     }, (long) timeLimit, TimeUnit.SECONDS);
 		
-		System.out.println("Exploration started.");
+		System.out.println("Exploration Started.");
 	}
 	
 	final Runnable move = new Runnable() { public void run() {
@@ -66,7 +66,7 @@ public class Exploration {
 			doNextMove();
 		} else {
 			exec.shutdown();
-			System.out.println(exec.isShutdown());
+			System.out.println("Exploration Ended.");
 			// Fastest path back to starting point
 		}
 	}};
@@ -83,12 +83,17 @@ public class Exploration {
 	
 	private void doNextMove() {
 		if (!checkLeftObstacle()) {
+			System.out.println("Robot is turning left.");
 			robot.move(Movement.TURNLEFT);
+			System.out.println("Robot is moving forward.");
 			robot.move(Movement.FORWARD);
-		} else if (checkForwardObstacle())
+		} else if (checkForwardObstacle()) {
+			System.out.println("Robot is turning right.");
 				robot.move(Movement.TURNRIGHT);
-		else
+		} else {
+			System.out.println("Robot is moving forward.");
 			robot.move(Movement.FORWARD);
+		}
 	}
 	
 	private boolean checkForwardObstacle() {
