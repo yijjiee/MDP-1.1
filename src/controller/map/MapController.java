@@ -6,14 +6,16 @@
 package controller.map;
 
 import controller.MainController;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import models.map.CellState;
-import models.map.Map;
+import models.map.MapModel;
 import ui.Main;
 
 public class MapController {
@@ -24,7 +26,7 @@ public class MapController {
 	public MapController(Main application, MainController mainMgr) {
 		this.application = application;
 		this.mainMgr = mainMgr;
-		this.cells = new Pane[Map.MAP_ROWS][Map.MAP_COLS];
+		this.cells = new Pane[MapModel.MAP_ROWS][MapModel.MAP_COLS];
 		
 		// Add Listeners
 		mainMgr.addMapChangedListener(this::initialize);
@@ -42,8 +44,8 @@ public class MapController {
 			int row = GridPane.getRowIndex(node);
 			int col = GridPane.getColumnIndex(node);
 			cells[row][col] = (Pane) node;
-			
-			onMapStateChanged(Map.MAP_ROWS - row - 1, col);
+						
+			onMapStateChanged(MapModel.MAP_ROWS - row - 1, col);
 		}
 	}
 	
@@ -56,59 +58,79 @@ public class MapController {
 		CellState cellState = mainMgr.getMap().getCellState(row, col);
 		
 		if (cellState == CellState.UNEXPLORED) {
-			cells[Map.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, #c0c0c0;");
+			cells[MapModel.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, #c0c0c0;");
 		}
 		else if(cellState == CellState.OBSTACLE) {
-			cells[Map.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, black;");
+			cells[MapModel.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, black;");
 		}
 		else if(cellState == CellState.NORMAL) {
-			cells[Map.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, white;");
+			cells[MapModel.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, white;");
 		}
 		else if (cellState == CellState.WAYPOINT) {
-			cells[Map.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, red;");
+			cells[MapModel.MAP_ROWS - row - 1][col].setStyle("-fx-background-color: black, red;");
 		}
 	}
 	
 	public void onCellClicked(MouseEvent event) {
-		Map map = mainMgr.getMap();
+		MapModel map = mainMgr.getMap();
 		
-		if (application.getExecBox().getValue().equals(Main.KEY_SIMULATION)) {
-			if (event.getButton() == MouseButton.PRIMARY) {
-				String cellInput = application.getMapInputBox().getValue();
-				if (cellInput.equals(Main.KEY_OBSTACLE)) {
-					Pane cell = (Pane)event.getSource();
-					int row = Map.MAP_ROWS - GridPane.getRowIndex(cell) - 1;
-					int col = GridPane.getColumnIndex(cell);
-					if(map.getCellState(row, col) == CellState.OBSTACLE)
-						map.setCellState(row, col, CellState.NORMAL);
-					else
-						map.setCellState(row, col, CellState.OBSTACLE);
-				} 
-				else if (cellInput.equals(Main.KEY_WAYPOINT)) {
-					Pane cell = (Pane)event.getSource();
-					int row = Map.MAP_ROWS - GridPane.getRowIndex(cell) - 1;
-					int col = GridPane.getColumnIndex(cell);
-					if(map.getCellState(row, col) == CellState.WAYPOINT)
-						map.setCellState(row, col, CellState.NORMAL);
-					else
-						map.setCellState(row, col, CellState.WAYPOINT);
+		if (!application.getExploreBtn().isDisabled()) {
+			if (application.getExecBox().getValue().equals(Main.KEY_SIMULATION)) {
+				if (event.getButton() == MouseButton.PRIMARY) {
+					String cellInput = application.getMapInputBox().getValue();
+					if (cellInput.equals(Main.KEY_OBSTACLE)) {
+						Pane cell = (Pane)event.getSource();
+						int row = MapModel.MAP_ROWS - GridPane.getRowIndex(cell) - 1;
+						int col = GridPane.getColumnIndex(cell);
+						if(map.getCellState(row, col) == CellState.OBSTACLE)
+							map.setCellState(row, col, CellState.NORMAL);
+						else
+							map.setCellState(row, col, CellState.OBSTACLE);
+					} 
+					else if (cellInput.equals(Main.KEY_WAYPOINT)) {
+						Pane cell = (Pane)event.getSource();
+						int row = MapModel.MAP_ROWS - GridPane.getRowIndex(cell) - 1;
+						int col = GridPane.getColumnIndex(cell);
+						if(map.getCellState(row, col) == CellState.WAYPOINT)
+							map.setCellState(row, col, CellState.NORMAL);
+						else
+							map.setCellState(row, col, CellState.WAYPOINT);
+					}
 				}
 			}
 		}
 	}
 	
 	public void onExploreClicked(MouseEvent event) {
+		mainMgr.setCoverageLimit(Integer.valueOf(application.getCoverageLimitField().getText()));
+		mainMgr.setTimeLimit(Integer.valueOf(application.getTimeLimitField().getText()));
 		mainMgr.explore();
 		application.getExploreBtn().setDisable(true);
 	}
 	
 	public void onRobotPosChanged() {
-		double y = (Map.MAP_ROWS - mainMgr.getRobot().getRow() - 1) * 39 + 29.5;
-		double x = (mainMgr.getRobot().getCol() + 1) * 39;
+		double y = (MapModel.MAP_ROWS - mainMgr.getRobot().getRow() - 1) * 39 - 29.5;
+		double x = (mainMgr.getRobot().getCol() - 1) * 39 + 20;
 		
-		Circle robot = application.getRobotPane();
+		StackPane robot = (StackPane) application.getRobotPane();
 		robot.setLayoutX(x);
 		robot.setLayoutY(y);
+		Circle robotHead = (Circle) robot.getChildren().get(1);
+		
+		switch(mainMgr.getRobot().getRobotDir()) {
+			case NORTH:
+				StackPane.setAlignment(robotHead, Pos.TOP_CENTER);
+				break;
+			case SOUTH:
+				StackPane.setAlignment(robotHead, Pos.BOTTOM_CENTER);
+				break;
+			case EAST:
+				StackPane.setAlignment(robotHead, Pos.CENTER_RIGHT);
+				break;
+			case WEST:
+				StackPane.setAlignment(robotHead, Pos.CENTER_LEFT);
+				break;
+		}
 
 		mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
 	}

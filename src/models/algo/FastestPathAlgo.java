@@ -32,18 +32,18 @@ public class FastestPathAlgo {
     private DIRECTION curDir;               // current direction of robot
     private double[][] gCosts;              // array of real cost from START to [row][col] i.e. g(n)
     private Robot bot;
-    private Map exploredMap;
-    private final Map realMap;
+    private MapModel exploredMap;
+    private final MapModel realMap;
     private int loopCount;
     private boolean explorationMode;
     private Cell grid[][];
 
-    public FastestPathAlgo(Map exploredMap, Robot bot) {
+    public FastestPathAlgo(MapModel exploredMap, Robot bot) {
         this.realMap = null;
         initObject(exploredMap, bot);
     }
 
-    public FastestPathAlgo(Map exploredMap, Robot bot, Map realMap) {
+    public FastestPathAlgo(MapModel exploredMap, Robot bot, MapModel realMap) {
         this.realMap = realMap;
         this.explorationMode = true;
         initObject(exploredMap, bot);
@@ -52,7 +52,7 @@ public class FastestPathAlgo {
     /**
      * Initialise the FastestPathAlgo object.
      */
-    private void initObject(Map map, Robot bot) {
+    private void initObject(MapModel map, Robot bot) {
         this.bot = bot;
         this.exploredMap = map;
         this.toVisit = new ArrayList<>();

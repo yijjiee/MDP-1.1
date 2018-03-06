@@ -8,6 +8,7 @@ package ui;
 import controller.MainController;
 import controller.map.MapController;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -19,23 +20,25 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import models.map.Map;
 
 
 public class Main extends Application {
 	private static Main application;
 	private GridPane mapPane;
 	private VBox menuPane;
-	private Circle robotPane;
+	private Pane robotPane;
 	
 	private ComboBox<String> execBox;
 	private ComboBox<String> mapInputBox;
+	private TextField tlField;
+	private TextField clField;
 	private Button exploreBtn;
 	
 	public final static String KEY_SIMULATION = "SIMULATION";
@@ -59,7 +62,7 @@ public class Main extends Application {
 			robotPane = initializeRobot();
 			Pane endPointPane = initializeEndPoint();
 			
-			root.getChildren().addAll(mapPane, menuPane, robotPane, endPointPane);
+			root.getChildren().addAll(mapPane, menuPane, endPointPane,  robotPane);
 			primaryStage.setScene(scene);
 			
 			Main application = Main.getCurrentApplication();
@@ -81,7 +84,7 @@ public class Main extends Application {
 		return menuPane;
 	}
 	
-	public Circle getRobotPane() {
+	public Pane getRobotPane() {
 		return robotPane;
 	}
 
@@ -91,6 +94,14 @@ public class Main extends Application {
 	
 	public Button getExploreBtn() {
 		return exploreBtn;
+	}
+	
+	public TextField getTimeLimitField() {
+		return tlField;
+	}
+	
+	public TextField getCoverageLimitField() {
+		return clField;
 	}
 
 	public ComboBox<String> getMapInputBox() {
@@ -139,12 +150,21 @@ public class Main extends Application {
 		return mapPane;
 	}
 	
-	private Circle initializeRobot() {
-		robotPane = new Circle();
-		robotPane.setLayoutX(78.5);
-		robotPane.setLayoutY(731.5);
-		robotPane.setRadius(58.5);
-		robotPane.setFill(Color.DARKOLIVEGREEN);
+	private Pane initializeRobot() {
+		robotPane = new StackPane();
+		robotPane.setLayoutX(20);
+		robotPane.setLayoutY(672.5);
+		
+		Circle robot = new Circle();
+		robot.setRadius(58.5);
+		robot.setFill(Color.BLACK);
+		
+		Circle robotHead = new Circle();
+		robotHead.setRadius(15);
+		robotHead.setFill(Color.RED);
+		
+		robotPane.getChildren().addAll(robot, robotHead);
+		StackPane.setAlignment(robotHead, Pos.TOP_CENTER);
 		
 		return robotPane;
 	}
@@ -159,7 +179,7 @@ public class Main extends Application {
 		Rectangle bg = new Rectangle();
 		bg.setWidth(116);
 		bg.setHeight(115);
-		bg.setFill(Color.BLACK);
+		bg.setFill(Color.GREY);
 		
 		Pane endPoint = new Pane();
 		endPoint.setLayoutX(488);
@@ -273,7 +293,8 @@ public class Main extends Application {
 		HBox tlBox = new HBox();
 		Label tlLabel = new Label("Time Limit (secs):");
 		tlLabel.setFont(new Font(16));
-		TextField tlField = new TextField();
+		tlField = new TextField();
+		tlField.setText("360");
 		tlField.setFont(new Font(13));
 		tlField.setPrefWidth(70);
 		tlBox.setSpacing(10);
@@ -283,7 +304,8 @@ public class Main extends Application {
 		HBox clBox = new HBox();
 		Label clLabel = new Label("Coverage Limit (%):");
 		clLabel.setFont(new Font(16));
-		TextField clField = new TextField();
+		clField = new TextField();
+		clField.setText("100");
 		clField.setFont(new Font(13));
 		clField.setPrefWidth(70);
 		clBox.setSpacing(10);

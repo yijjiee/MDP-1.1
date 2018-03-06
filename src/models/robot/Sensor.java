@@ -1,7 +1,7 @@
 package models.robot;
 
 import models.map.CellState;
-import models.map.Map;
+import models.map.MapModel;
 
 public class Sensor {
 	private int range;
@@ -54,7 +54,7 @@ public class Sensor {
 		this.sensorFace = sensorFace;
 	}
 	
-	public void sense(Map cachedMap, Map realMap) {
+	public void sense(MapModel cachedMap, MapModel realMap) {
 		switch(sensorFace) {
 			case NORTH:
 				getObstacle(cachedMap, realMap, 1, 0); break;
@@ -67,12 +67,12 @@ public class Sensor {
 		}
 	}
 	
-	public int getObstacle(Map cachedMap, Map map, int rowInc, int colInc) {
+	public int getObstacle(MapModel cachedMap, MapModel map, int rowInc, int colInc) {
 		for (int i = 0; i < range; i++) {
 			int x = col + (colInc*i);
 			int y = row + (rowInc*i);
 			
-			if (x < 0 || y < 0 && x > 14 || y > 19)
+			if (x < 0 || x > 14 || y < 0 || y > 19)
 				return - 1;
 			
 			map.setCellState(y, x, CellState.NORMAL);

@@ -1,26 +1,37 @@
 package models.algo;
 
+import java.util.LinkedList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import models.map.CellState;
-import models.map.Map;
+import models.map.MapModel;
 import models.robot.Movement;
 import models.robot.Robot;
 import models.robot.RobotState;
 import models.robot.Sensor;
 
 public class Exploration {
-	private Map map;
+	private MapModel map;
 	private Robot robot;
 	private Sensor NL;
 	private Sensor NC;
 	private Sensor NR;
-	private Sensor WC;
+	private Sensor WT;
 	private Sensor EC;
-	private int unexploredCells;
+	private double timeLimit;
+	private double coverageLimit;
+	private int exploredCells;
+
+	private final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
 	
-	public Exploration(Map map, Robot robot) {
+	public Exploration(MapModel map, Robot robot, double timeLimit, double coverageLimit) {
 		this.map = map;
 		this.robot = robot;
-		
+		this.timeLimit = timeLimit;
+		this.coverageLimit = coverageLimit;
 		/*
 		 * Coverage Limit & Time Limit 
 		 */
@@ -36,40 +47,93 @@ public class Exploration {
 			NL = robot.getNL();
 			NC = robot.getNC();
 			NR = robot.getNR();
-			WC = robot.getWC();
+			WT = robot.getWT();
 			EC = robot.getEC();
 		}
+
+		final ScheduledFuture<?> scheduler = exec.scheduleAtFixedRate(move, 1, 250, TimeUnit.MILLISECONDS);
+		
+		exec.schedule(new Runnable() {
+	       public void run() { scheduler.cancel(true); }
+	     }, (long) timeLimit, TimeUnit.SECONDS);
 		
 		System.out.println("Exploration started.");
-		getUnexploredCells();
-	
-		do {
-			doNextMove();
-			
-		} while (unexploredCells > 0);
 	}
 	
-	private void getUnexploredCells() {
-		for (int row = 0; row < Map.MAP_ROWS; row++) {
-			for (int col = 0; col < Map.MAP_COLS; col++) {
-				if (map.getCellState(row, col) == CellState.UNEXPLORED)
-					unexploredCells++;
+	final Runnable move = new Runnable() { public void run() {
+		if (exploredCells < (coverageLimit/100)*300) {
+			getExploredCells();
+			doNextMove();
+		} else {
+			exec.shutdown();
+			System.out.println(exec.isShutdown());
+			// Fastest path back to starting point
+		}
+	}};
+	
+	private void getExploredCells() {
+		exploredCells = 0;
+		for (int row = 0; row < MapModel.MAP_ROWS; row++) {
+			for (int col = 0; col < MapModel.MAP_COLS; col++) {
+				if (map.getCellState(row, col) != CellState.UNEXPLORED)
+					exploredCells++;
 			}
 		}
 	}
 	
 	private void doNextMove() {
-		if (!checkForwardObstacle())
+		if (!checkLeftObstacle()) {
+			robot.move(Movement.TURNLEFT);
+			robot.move(Movement.FORWARD);
+		} else if (checkForwardObstacle())
+				robot.move(Movement.TURNRIGHT);
+		else
 			robot.move(Movement.FORWARD);
 	}
 	
 	private boolean checkForwardObstacle() {
-		if (NL.getRow() >= 0 && NL.getRow() < 19 && NL.getCol() >= 0 && NL.getCol() < 14) {
-			if (map.getCellState(NL.getRow() + 1, NL.getCol()) == CellState.OBSTACLE || map.getCellState(NC.getRow() + 1, NC.getCol()) == CellState.OBSTACLE || map.getCellState(NR.getRow() + 1, NR.getCol()) == CellState.OBSTACLE)
-			return true;
-		else
-			return false;
+		switch (robot.getRobotDir()) {
+			case NORTH:
+				if (map.getCellState(NL.getRow() + 1, NL.getCol()) == CellState.OBSTACLE || map.getCellState(NC.getRow() + 1, NC.getCol()) == CellState.OBSTACLE || map.getCellState(NR.getRow() + 1, NR.getCol()) == CellState.OBSTACLE)
+					return true;
+				break;
+			case SOUTH:
+				if (map.getCellState(NL.getRow() - 1, NL.getCol()) == CellState.OBSTACLE || map.getCellState(NC.getRow() - 1, NC.getCol()) == CellState.OBSTACLE || map.getCellState(NR.getRow() - 1, NR.getCol()) == CellState.OBSTACLE)
+					return true;
+				break;
+			case EAST:
+				if (map.getCellState(NL.getRow(), NL.getCol() + 1) == CellState.OBSTACLE || map.getCellState(NC.getRow(), NC.getCol() + 1) == CellState.OBSTACLE || map.getCellState(NR.getRow(), NR.getCol() + 1) == CellState.OBSTACLE)
+					return true;
+				break;
+			case WEST:
+				if (map.getCellState(NL.getRow(), NL.getCol() - 1) == CellState.OBSTACLE || map.getCellState(NC.getRow(), NC.getCol() - 1) == CellState.OBSTACLE || map.getCellState(NR.getRow(), NR.getCol() - 1) == CellState.OBSTACLE)
+					return true;
+				break;
 		}
-		return true;
+		
+		return false;
+	}
+	
+	private boolean checkLeftObstacle() {
+		switch (robot.getRobotDir()) {
+			case NORTH:
+				if (map.getCellState(NL.getRow(), NL.getCol() - 1) == CellState.OBSTACLE || map.getCellState(NL.getRow() - 1, NL.getCol() - 1) == CellState.OBSTACLE || map.getCellState(NL.getRow() - 2, NL.getCol() - 1) == CellState.OBSTACLE)
+					return true;
+				break;
+			case SOUTH:
+				if (map.getCellState(NL.getRow(), NL.getCol() + 1) == CellState.OBSTACLE || map.getCellState(NL.getRow() + 1, NL.getCol() + 1) == CellState.OBSTACLE || map.getCellState(NL.getRow() + 2, NL.getCol() + 1) == CellState.OBSTACLE)
+					return true;
+				break;
+			case EAST:
+				if (map.getCellState(NL.getRow() + 1, NL.getCol() - 2) == CellState.OBSTACLE || map.getCellState(NL.getRow() + 1, NL.getCol() - 1) == CellState.OBSTACLE || map.getCellState(NL.getRow() + 1, NL.getCol()) == CellState.OBSTACLE)
+					return true;
+				break;
+			case WEST:
+				if (map.getCellState(NL.getRow() - 1, NL.getCol() + 2) == CellState.OBSTACLE || map.getCellState(NL.getRow() - 1, NL.getCol() + 1) == CellState.OBSTACLE || map.getCellState(NL.getRow() - 1, NL.getCol()) == CellState.OBSTACLE)
+					return true;
+				break;
+		}
+		
+		return false;
 	}
 }

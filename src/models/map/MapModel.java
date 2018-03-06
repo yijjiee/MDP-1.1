@@ -10,7 +10,7 @@ import java.util.List;
 
 import interfaces.MapListener;
 
-public class Map {
+public class MapModel {
 	public static final int MAP_ROWS = 20;
 	public static final int MAP_COLS = 15;
 
@@ -28,6 +28,8 @@ public class Map {
 	}
 	
 	public CellState getCellState(int row, int col) {
+		if (row < 0 || row > 19 || col < 0 || col > 14)
+			return CellState.OBSTACLE;
 		return grid[row][col].getState();
 	}
 	
@@ -36,7 +38,7 @@ public class Map {
 		notifyChange(row, col);		
 	}
 	
-	public Map() {
+	public MapModel() {
 		grid = new Cell[MAP_ROWS][MAP_COLS];
 		for (int row = 0; row < MAP_ROWS; row++) {
 			for (int col = 0; col < MAP_COLS; col++) {
