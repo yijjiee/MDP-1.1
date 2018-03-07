@@ -6,6 +6,7 @@ import java.util.Stack;
 import models.map.Cell;
 import models.map.CellState;
 import models.map.MapModel;
+import models.robot.Direction;
 import models.robot.Robot;
 
 public class FastestPath {
@@ -18,12 +19,13 @@ public class FastestPath {
 	private double [][] fScore;
 	private Robot robot;
 	private MapModel map;
+	private Direction robotDir;
 	private int endRow;
 	private int endCol;
 	
 	/**
 	 * 
-	 * @param robot - The object to retrieve starting point of the fastest path
+	 * @param robot
 	 * @param map
 	 */
 	public FastestPath(Robot robot, int endRow, int endCol, MapModel map) {
@@ -31,6 +33,7 @@ public class FastestPath {
 		this.robot = robot;
 		this.endRow = endRow;
 		this.endCol = endCol;
+		robotDir = robot.getRobotDir();
 
 		closedSet = new ArrayList<Cell>();
 		openSet = new ArrayList<Cell>();
@@ -51,13 +54,29 @@ public class FastestPath {
 		openSet.add(currentCell);		
 	}
 	
+	public int getEndRow() {
+		return endRow;
+	}
+
+	public void setEndRow(int endRow) {
+		this.endRow = endRow;
+	}
+
+	public int getEndCol() {
+		return endCol;
+	}
+
+	public void setEndCol(int endCol) {
+		this.endCol = endCol;
+	}
+
 	public Stack<Cell> startFastestPath() {
 		while (!openSet.isEmpty()) {
 			int lowestIndex = getLowestScore();
 			currentCell = openSet.get(lowestIndex);
 			openSet.remove(openSet.get(lowestIndex));
 			
-			if (currentCell.getRow() == MapModel.END_ROW && currentCell.getCol() == MapModel.END_COL) {
+			if (currentCell.getRow() == endRow && currentCell.getCol() == endCol) {
 				System.out.println("Solution Found.");
 				return reconstruct_path(cameFrom, robot.getRow(), robot.getCol());
 			}
@@ -69,6 +88,9 @@ public class FastestPath {
 				Cell neighbour = neighbours.get(i);
 				int nRow = neighbour.getRow();
 				int nCol = neighbour.getCol();
+				int rowDiff = nRow - robot.getRow();
+				int colDiff = nCol - robot.getCol();
+				double turnCost = 0;
 				
 				if (closedSet.contains(neighbour))
 					continue;
@@ -76,7 +98,9 @@ public class FastestPath {
 				if (openSet.lastIndexOf(neighbour) == -1)
 					openSet.add(neighbour);
 				
-				double tempGscore = gScore[currentCell.getRow()][currentCell.getCol()] + 1;
+				turnCost = calculateTurnCost(rowDiff, colDiff);
+				
+				double tempGscore = gScore[currentCell.getRow()][currentCell.getCol()] + turnCost;
 				
 				if (tempGscore >= gScore[nRow][nCol])
 					continue;
@@ -86,10 +110,79 @@ public class FastestPath {
 					fScore[nRow][nCol] = gScore[nRow][nCol] + getDistance(nRow, nCol, endRow, endCol);
 				}	
 			}
-			System.out.println("hello");
 		}
 		System.out.println("No solution found!");
 		return null;
+	}
+	
+	private double calculateTurnCost(int rowDiff, int colDiff) {
+		double turnCost = 0;
+		switch (rowDiff) {
+			case 1:
+				switch (robotDir) {
+					case NORTH:
+						break;
+					case SOUTH:
+						turnCost = 20;
+						break;
+					case EAST:
+						turnCost = 10;
+						break;
+					case WEST:
+						turnCost = 10;
+						break;
+				}
+				return turnCost;
+			case -1:
+				switch (robotDir) {
+					case NORTH:
+						turnCost = 20;
+						break;
+					case SOUTH:
+						break;
+					case EAST:
+						turnCost = 10;
+						break;
+					case WEST:
+						turnCost = 10;
+						break;
+				}
+				return turnCost;
+		}
+		
+		switch (colDiff) {
+			case 1:
+				switch (robotDir) {
+					case NORTH:
+						turnCost = 10;
+						break;
+					case SOUTH:
+						turnCost = 10;
+						break;
+					case EAST:
+						break;
+					case WEST:
+						turnCost = 20;
+						break;
+				}
+				return turnCost;
+			case -1:
+				switch (robotDir) {
+					case NORTH:
+						turnCost = 10;
+						break;
+					case SOUTH:
+						turnCost = 10;
+						break;
+					case EAST:
+						turnCost = 20;
+						break;
+					case WEST:
+						break;
+				}
+				return turnCost;
+		}
+		return turnCost;
 	}
 	
 	private int getLowestScore() {
@@ -108,7 +201,7 @@ public class FastestPath {
 		return lowestIndex;
 	}
 
-	public Stack<Cell> reconstruct_path(Cell[][] cameFrom, int row, int col) {
+	private Stack<Cell> reconstruct_path(Cell[][] cameFrom, int row, int col) {
 		Stack<Cell> path = new Stack<Cell>();
 	    while (cameFrom[currentCell.getRow()][currentCell.getCol()] != null) {
 			path.push(currentCell);
@@ -117,7 +210,7 @@ public class FastestPath {
 	    return path;
 	}
 	
-	public ArrayList<Cell> getNeighbours(int row, int col, MapModel map) {
+	private ArrayList<Cell> getNeighbours(int row, int col, MapModel map) {
 		neighbours = new ArrayList<Cell>();
 		Cell northNeighbour = map.getCell(row + 1, col);
 		Cell southNeighbour = map.getCell(row - 1, col);
@@ -136,7 +229,7 @@ public class FastestPath {
 		return neighbours;
 	}
 	
-	public double getDistance(int startRow, int startCol, int endRow, int endCol) {
+	private double getDistance(int startRow, int startCol, int endRow, int endCol) {
 		return Math.sqrt(Math.pow(startCol - endCol, 2) + Math.pow(startRow - endRow, 2));
 	}
 }

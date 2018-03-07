@@ -1,13 +1,17 @@
 package models.algo;
 
 import java.util.LinkedList;
+import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
+import controller.MainController;
+import models.map.Cell;
 import models.map.CellState;
 import models.map.MapModel;
+import models.robot.Direction;
 import models.robot.Movement;
 import models.robot.Robot;
 import models.robot.RobotState;
@@ -24,7 +28,11 @@ public class Exploration {
 	private double timeLimit;
 	private double coverageLimit;
 	private int exploredCells;
-
+	private FastestPath fastestPathModel;
+	private LinkedList<Movement> movements;
+	
+	private Timer timer;
+	
 	private final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
 	
 	public Exploration(MapModel map, Robot robot, double timeLimit, double coverageLimit) {
@@ -32,6 +40,7 @@ public class Exploration {
 		this.robot = robot;
 		this.timeLimit = timeLimit;
 		this.coverageLimit = coverageLimit;
+		movements = new LinkedList<Movement>();
 		/*
 		 * Coverage Limit & Time Limit 
 		 */
@@ -50,26 +59,152 @@ public class Exploration {
 			WT = robot.getWT();
 			EC = robot.getEC();
 		}
-
-		final ScheduledFuture<?> scheduler = exec.scheduleAtFixedRate(move, 1, 250, TimeUnit.MILLISECONDS);
 		
-		exec.schedule(new Runnable() {
-	       public void run() { scheduler.cancel(true); }
-	     }, (long) timeLimit, TimeUnit.SECONDS);
+		timer = new Timer();
+		timer.schedule(explore, 1000, 150);
 		
 		System.out.println("Exploration Started.");
 	}
 	
-	final Runnable move = new Runnable() { public void run() {
-		if (exploredCells < (coverageLimit/100)*300) {
+	private final TimerTask explore = new TimerTask() {
+		public void run() {
 			getExploredCells();
-			doNextMove();
-		} else {
-			exec.shutdown();
-			System.out.println("Exploration Ended.");
-			// Fastest path back to starting point
+			if (robot.getRow() == MapModel.START_ROW && robot.getCol() == MapModel.START_COL) {
+				if (exploredCells > 100) {
+					timer.cancel();
+				}
+				else {
+					doNextMove();
+				}
+			} else {
+				 if (exploredCells < (coverageLimit/100)*300) {
+					 doNextMove();
+				 } else {
+					timer.cancel();
+					timer = new Timer();
+					startFastestPath();
+					timer.schedule(moveToStart, 0, 150);
+					System.out.println("Exploration ended.");
+				}
+			}
 		}
-	}};
+	};
+	
+	private final TimerTask moveToStart = new TimerTask() {
+		public void run() {
+			if (robot.getRow() == 1 && robot.getCol() == 1)
+				timer.cancel();
+			else {
+				robot.move(movements.pop());
+			}
+		}
+	};
+	
+	private void startFastestPath() {
+		fastestPathModel = new FastestPath(robot, MapModel.START_ROW, MapModel.START_COL, MainController.transformMap(map));
+		Stack<Cell> fastestPath = fastestPathModel.startFastestPath();
+		convertToDirection(fastestPath);
+	}
+	
+	private void convertToDirection(Stack<Cell> path) {
+		int robotRow = robot.getRow();
+		int robotCol = robot.getCol();
+		Direction robotDir = robot.getRobotDir();
+		int rowDiff = robotRow - path.peek().getRow();
+		int colDiff = robotCol - path.peek().getCol();
+		
+		robotDir = getMovementFromPos(rowDiff, colDiff, robotDir);
+
+		while (path.size() > 1) {
+			Cell tempCell = path.pop();
+			rowDiff = tempCell.getRow() - path.peek().getRow();
+			colDiff = tempCell.getCol() - path.peek().getCol();
+			robotDir = getMovementFromPos(rowDiff, colDiff, robotDir);
+		}
+		System.out.println("End of Converting Path");
+	}
+	
+	private Direction getMovementFromPos(int rowDiff, int colDiff, Direction robotDir) {
+		switch (rowDiff) {
+			case -1:
+				switch (robotDir) {
+					case NORTH:
+						break;
+					case SOUTH:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					case EAST:
+						movements.add(Movement.TURNLEFT);
+						break;
+					case WEST:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.NORTH;
+			case 1:
+				switch (robotDir) {
+					case NORTH:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					case SOUTH:
+						break;
+					case EAST:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					case WEST:
+						movements.add(Movement.TURNLEFT);
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.SOUTH;
+		}
+	
+		switch (colDiff) {
+			default: break;
+			case -1:
+				switch (robotDir) {
+					case NORTH:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					case SOUTH:
+						movements.add(Movement.TURNLEFT);
+						break;
+					case EAST:
+						break;
+					case WEST:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.EAST;
+			case 1:
+				switch (robotDir) {
+					case NORTH:
+						movements.add(Movement.TURNLEFT);
+						break;
+					case SOUTH:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					case EAST:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					case WEST:
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.WEST;
+		}
+		return null;
+	}
 	
 	private void getExploredCells() {
 		exploredCells = 0;
@@ -83,15 +218,11 @@ public class Exploration {
 	
 	private void doNextMove() {
 		if (!checkLeftObstacle()) {
-			System.out.println("Robot is turning left.");
 			robot.move(Movement.TURNLEFT);
-			System.out.println("Robot is moving forward.");
 			robot.move(Movement.FORWARD);
 		} else if (checkForwardObstacle()) {
-			System.out.println("Robot is turning right.");
-				robot.move(Movement.TURNRIGHT);
+			robot.move(Movement.TURNRIGHT);
 		} else {
-			System.out.println("Robot is moving forward.");
 			robot.move(Movement.FORWARD);
 		}
 	}

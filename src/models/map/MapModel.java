@@ -13,7 +13,7 @@ import interfaces.MapListener;
 public class MapModel {
 	public static final int MAP_ROWS = 20;
 	public static final int MAP_COLS = 15;
-
+	
 	public static final int END_ROW = 18;
 	public static final int END_COL = 13;
 	public static final int START_ROW = 1;

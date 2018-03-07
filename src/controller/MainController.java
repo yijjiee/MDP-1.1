@@ -1,8 +1,11 @@
 package controller;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import interfaces.MapChangedInterface;
 import models.algo.Exploration;
@@ -10,6 +13,8 @@ import models.algo.FastestPath;
 import models.map.Cell;
 import models.map.CellState;
 import models.map.MapModel;
+import models.robot.Direction;
+import models.robot.Movement;
 import models.robot.Robot;
 import models.robot.RobotState;
 
@@ -23,7 +28,9 @@ public class MainController {
 	private double timeLimit;
 	private double coverageLimit;
 	private Stack<Cell> fastestPath;
-	
+	private LinkedList<Movement> movements;
+	private Timer timer;
+	private boolean isWaypointExist;
 	
 	public MainController() {
 		mapListeners = new ArrayList<>();
@@ -75,19 +82,48 @@ public class MainController {
 		robot.sense(cachedMap, map);
 		exploration = new Exploration(map, robot, timeLimit, coverageLimit);
 		exploration.startExploration();
+		if (robot.getCol() != 1 || robot.getRow() != 1)
+			fastestPathModel = new FastestPath(robot, MapModel.START_ROW, MapModel.START_COL, transformMap(map));
 		
 		for(MapChangedInterface listener: mapListeners)
 			listener.onMapChanged();
 	}
 	
 	public void runFastestPath() {
-		fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap());
+		movements = new LinkedList<Movement>();
+		timer = new Timer();
+		fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
 		fastestPath = fastestPathModel.startFastestPath();
-		
-		for (Cell cell : fastestPath) {
-			System.out.println("Row: " + cell.getRow() + " Column: " + cell.getCol());
-		}
+		convertToDirection(fastestPath);
+		timer.schedule(moveToPoint, 500, 150);
 	}
+	
+	private final TimerTask moveToPoint = new TimerTask() {
+		public void run() {
+			if (robot.getRow() == fastestPathModel.getEndRow() && robot.getCol() == fastestPathModel.getEndCol()) {
+				timer.cancel();
+				if (robot.getRow() != MapModel.END_ROW || robot.getCol() != MapModel.END_COL) {
+					timer = new Timer();
+					movements.clear();
+					fastestPathModel.setEndRow(MapModel.END_ROW);
+					fastestPathModel.setEndCol(MapModel.END_COL);
+					fastestPath = fastestPathModel.startFastestPath();
+					convertToDirection(fastestPath);
+					timer.schedule(moveToEnd, 500, 150);
+				}
+			} else
+				robot.move(movements.pop());
+		}
+	};
+	
+	private final TimerTask moveToEnd = new TimerTask() {
+		public void run() {
+			if (robot.getRow() == fastestPathModel.getEndRow() && robot.getCol() == fastestPathModel.getEndCol())
+				timer.cancel();
+			else
+				robot.move(movements.pop());
+		}
+	};
 	
 	public boolean addMapChangedListener(MapChangedInterface listener) {
 		return mapListeners.add(listener);
@@ -97,7 +133,7 @@ public class MainController {
 		return mapListeners.remove(listener);
 	}
 	
-	public MapModel transformMap() {
+	public static MapModel transformMap(MapModel map) {
 		MapModel tempMap = new MapModel();
 		for (int i = 0; i < MapModel.MAP_ROWS; i++) {
 			for (int j = 0; j < MapModel.MAP_COLS; j++) {
@@ -143,11 +179,108 @@ public class MainController {
 						tempMap.setCellState(i - 1, j + 1, CellState.OBSTACLE);
 					}
 				}
-				
-				System.out.print(tempMap.getCellState(i, j) + " ");
 			}
-			System.out.println();
 		}
 		return tempMap;
+	}
+	
+	private void convertToDirection(Stack<Cell> path) {
+		int robotRow = robot.getRow();
+		int robotCol = robot.getCol();
+		Direction robotDir = robot.getRobotDir();
+		int rowDiff = robotRow - path.peek().getRow();
+		int colDiff = robotCol - path.peek().getCol();
+		
+		robotDir = getMovementFromPos(rowDiff, colDiff, robotDir);
+
+		while (path.size() > 1) {
+			Cell tempCell = path.pop();
+			rowDiff = tempCell.getRow() - path.peek().getRow();
+			colDiff = tempCell.getCol() - path.peek().getCol();
+			robotDir = getMovementFromPos(rowDiff, colDiff, robotDir);
+		}
+		System.out.println("End of Converting Path");
+	}
+	
+	private Direction getMovementFromPos(int rowDiff, int colDiff, Direction robotDir) {
+		switch (rowDiff) {
+			case -1:
+				switch (robotDir) {
+					case NORTH:
+						break;
+					case SOUTH:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					case EAST:
+						movements.add(Movement.TURNLEFT);
+						break;
+					case WEST:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.NORTH;
+			case 1:
+				switch (robotDir) {
+					case NORTH:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					case SOUTH:
+						break;
+					case EAST:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					case WEST:
+						movements.add(Movement.TURNLEFT);
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.SOUTH;
+		}
+	
+		switch (colDiff) {
+			default: break;
+			case -1:
+				switch (robotDir) {
+					case NORTH:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					case SOUTH:
+						movements.add(Movement.TURNLEFT);
+						break;
+					case EAST:
+						break;
+					case WEST:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.EAST;
+			case 1:
+				switch (robotDir) {
+					case NORTH:
+						movements.add(Movement.TURNLEFT);
+						break;
+					case SOUTH:
+						movements.add(Movement.TURNRIGHT);
+						break;
+					case EAST:
+						movements.add(Movement.TURNLEFT);
+						movements.add(Movement.TURNLEFT);
+						break;
+					case WEST:
+						break;
+					default: break;
+				}
+				movements.add(Movement.FORWARD);
+				return Direction.WEST;
+		}
+		return null;
 	}
 }

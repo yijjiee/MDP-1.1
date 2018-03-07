@@ -80,6 +80,9 @@ public class Sensor {
 			if (cachedMap.getCellState(y, x) == CellState.OBSTACLE) {
 				map.setCellState(y, x, CellState.OBSTACLE);
 				return i;
+			} else if (cachedMap.getCellState(y, x) == CellState.WAYPOINT) {
+				map.setCellState(y, x, CellState.WAYPOINT);
+				return i;
 			}
 		}
 		return -1;
