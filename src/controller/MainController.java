@@ -20,17 +20,19 @@ import models.robot.RobotState;
 
 public class MainController {
 	private List<MapChangedInterface> mapListeners;
+	
 	private MapModel map;
 	private MapModel cachedMap;
 	private Robot robot;
 	private Exploration exploration;
 	private FastestPath fastestPathModel;
+	
 	private double timeLimit;
 	private double coverageLimit;
+	
 	private Stack<Cell> fastestPath;
 	private LinkedList<Movement> movements;
 	private Timer timer;
-	private boolean isWaypointExist;
 	
 	public MainController() {
 		mapListeners = new ArrayList<>();
@@ -65,26 +67,27 @@ public class MainController {
 	}
 	
 	public void explore() {
-		// 1) Cache old map state
-		cachedMap = map;
-		
-		// 2) Create new map state with all unexplored regions
-		map = new MapModel();
-		
-		for (int row = 0; row < MapModel.MAP_ROWS; row++) {
-			for (int col = 0; col < MapModel.MAP_COLS; col++) {
-				if (row < 3 && col < 3 || row > 16 && col > 11)
-					map.setCellState(row, col, CellState.NORMAL);
-				else
-					map.setCellState(row, col, CellState.UNEXPLORED);
+		if (robot.getState() == RobotState.SIMULATION) {
+			// 1) Cache old map state
+			cachedMap = map;
+			
+			// 2) Create new map state with all unexplored regions
+			map = new MapModel();
+			
+			for (int row = 0; row < MapModel.MAP_ROWS; row++) {
+				for (int col = 0; col < MapModel.MAP_COLS; col++) {
+					if (row < 3 && col < 3 || row > 16 && col > 11)
+						map.setCellState(row, col, CellState.NORMAL);
+					else
+						map.setCellState(row, col, CellState.UNEXPLORED);
+				}
 			}
+			robot.sense(cachedMap, map);
+			exploration = new Exploration(map, robot, timeLimit, coverageLimit);
+			exploration.startExploration();
+			if (robot.getCol() != 1 || robot.getRow() != 1)
+				fastestPathModel = new FastestPath(robot, MapModel.START_ROW, MapModel.START_COL, transformMap(map));
 		}
-		robot.sense(cachedMap, map);
-		exploration = new Exploration(map, robot, timeLimit, coverageLimit);
-		exploration.startExploration();
-		if (robot.getCol() != 1 || robot.getRow() != 1)
-			fastestPathModel = new FastestPath(robot, MapModel.START_ROW, MapModel.START_COL, transformMap(map));
-		
 		for(MapChangedInterface listener: mapListeners)
 			listener.onMapChanged();
 	}
@@ -92,7 +95,18 @@ public class MainController {
 	public void runFastestPath() {
 		movements = new LinkedList<Movement>();
 		timer = new Timer();
-		fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
+		Cell wayPoint = null;
+		for (int row = 0; row < MapModel.MAP_ROWS; row++) {
+			for (int col = 0; col < MapModel.MAP_COLS; col++) {
+				if (map.getCellState(row, col) == CellState.WAYPOINT)
+					wayPoint = map.getCell(row, col);
+			}
+		}
+		
+		if (wayPoint != null)
+			fastestPathModel = new FastestPath(robot, wayPoint.getRow(), wayPoint.getCol(), transformMap(map));
+		else
+			fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
 		fastestPath = fastestPathModel.startFastestPath();
 		convertToDirection(fastestPath);
 		timer.schedule(moveToPoint, 500, 150);
@@ -105,11 +119,10 @@ public class MainController {
 				if (robot.getRow() != MapModel.END_ROW || robot.getCol() != MapModel.END_COL) {
 					timer = new Timer();
 					movements.clear();
-					fastestPathModel.setEndRow(MapModel.END_ROW);
-					fastestPathModel.setEndCol(MapModel.END_COL);
+					fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
 					fastestPath = fastestPathModel.startFastestPath();
 					convertToDirection(fastestPath);
-					timer.schedule(moveToEnd, 500, 150);
+					timer.schedule(moveToEnd, 250, 150);
 				}
 			} else
 				robot.move(movements.pop());

@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.util.Collections;
 
 import controller.MainController;
+import controller.comms.CommsController;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -21,16 +22,19 @@ import javafx.scene.shape.Circle;
 import models.map.CellState;
 import models.map.MapDescriptorFormat;
 import models.map.MapModel;
+import models.robot.RobotState;
 import ui.Main;
 
 public class MapController {
 	private Main application;
 	private MainController mainMgr;
+	private CommsController commsMgr;
 	private Pane[][] cells;
 	
-	public MapController(Main application, MainController mainMgr) {
+	public MapController(Main application, MainController mainMgr, CommsController commsMgr) {
 		this.application = application;
 		this.mainMgr = mainMgr;
+		this.commsMgr = commsMgr;
 		this.cells = new Pane[MapModel.MAP_ROWS][MapModel.MAP_COLS];
 		
 		// Add Listeners
@@ -112,7 +116,11 @@ public class MapController {
 	public void onExploreClicked(MouseEvent event) {
 		mainMgr.setCoverageLimit(Integer.valueOf(application.getCoverageLimitField().getText()));
 		mainMgr.setTimeLimit(Integer.valueOf(application.getTimeLimitField().getText()));
-		mainMgr.explore();
+		if (mainMgr.getRobot().getState() == RobotState.SIMULATION) {
+			mainMgr.explore();
+		} else {
+			commsMgr.startExplore();
+		}
 		application.getExploreBtn().setDisable(true);
 	}
 	
