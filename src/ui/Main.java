@@ -42,6 +42,9 @@ public class Main extends Application {
 	private Button exploreBtn;
 	private Button fastestPathBtn;
 	
+	private TextArea mdf1;
+	private TextArea mdf2;
+	
 	public final static String KEY_SIMULATION = "SIMULATION";
 	public final static String KEY_PHYSICAL = "PHYSICAL";
 	public final static String KEY_OBSTACLE = "OBSTACLE";
@@ -111,6 +114,14 @@ public class Main extends Application {
 
 	public ComboBox<String> getMapInputBox() {
 		return mapInputBox;
+	}
+	
+	public TextArea getMdf1() {
+		return mdf1;
+	}
+	
+	public TextArea getMdf2() {
+		return mdf2;
 	}
 	
 	public static Main getCurrentApplication() {
@@ -275,10 +286,10 @@ public class Main extends Application {
 		mdf1Label.setFont(new Font(16));
 		
 		// MDF1
-		TextArea mdf1 = new TextArea();
+		mdf1 = new TextArea();
 		mdf1.setFont(new Font(14));
 		mdf1.setPrefHeight(80);
-		mdf1.setText("00000000000000");
+		mdf1.setText("00000000000000000000000000000000000000");
 		mdf1.setWrapText(true);
 		mdf1.setEditable(false);
 		
@@ -287,7 +298,7 @@ public class Main extends Application {
 		mdf2Label.setFont(new Font(16));
 		
 		// MDF1
-		TextArea mdf2 = new TextArea();
+		mdf2 = new TextArea();
 		mdf2.setFont(new Font(14));
 		mdf2.setPrefHeight(80);
 		mdf2.setText("00000000000000");

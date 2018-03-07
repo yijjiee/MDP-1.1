@@ -61,7 +61,7 @@ public class Exploration {
 		}
 		
 		timer = new Timer();
-		timer.schedule(explore, 1000, 150);
+		timer.schedule(explore, 500, 150);
 		
 		System.out.println("Exploration Started.");
 	}

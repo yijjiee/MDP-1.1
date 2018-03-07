@@ -230,6 +230,6 @@ public class FastestPath {
 	}
 	
 	private double getDistance(int startRow, int startCol, int endRow, int endCol) {
-		return Math.sqrt(Math.pow(startCol - endCol, 2) + Math.pow(startRow - endRow, 2));
+		return Math.abs(startRow-endRow) + Math.abs(startCol-endCol);
 	}
 }

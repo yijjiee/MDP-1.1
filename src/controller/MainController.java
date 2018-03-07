@@ -141,8 +141,8 @@ public class MainController {
 			}
 		}
 
-		for (int i = 0; i < MapModel.MAP_ROWS - 1; i++) {
-			for (int j = 0; j < MapModel.MAP_COLS - 1; j++) {
+		for (int i = 0; i < MapModel.MAP_ROWS; i++) {
+			for (int j = 0; j < MapModel.MAP_COLS; j++) {
 				if (i == 0 && map.getCellState(i, j) == CellState.OBSTACLE) {
 					tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
 					tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
