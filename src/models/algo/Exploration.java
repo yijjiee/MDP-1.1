@@ -24,7 +24,8 @@ public class Exploration {
 	private Sensor NC;
 	private Sensor NR;
 	private Sensor WT;
-	private Sensor EC;
+	private Sensor ET;
+	private Sensor EB;
 	private double timeLimit;
 	private double coverageLimit;
 	private int exploredCells;
@@ -57,7 +58,8 @@ public class Exploration {
 			NC = robot.getNC();
 			NR = robot.getNR();
 			WT = robot.getWT();
-			EC = robot.getEC();
+			ET = robot.getET();
+			EB = robot.getEB();
 		}
 		
 		timer = new Timer();
