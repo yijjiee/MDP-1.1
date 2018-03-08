@@ -10,13 +10,22 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class CommsModel {
-	private static final String MAP_FROM_MDF = "MDF";	// PC -> ANDROID
-	private static final String BOT_POS = "BOT_POS";	// PC -> ANDROID
+	private static final String MSG_TO_ANDROID = "#";
+	private static final String MSG_TO_BOT = "~";
 	
+	private static CommsModel commsMgr;
 	private static Socket conn;
 	
 	private BufferedWriter writer;
 	private BufferedReader reader;
+	
+	private CommsModel() {}
+	
+	public static CommsModel getCommsModel() {
+		if (commsMgr == null)
+			commsMgr = new CommsModel();
+		return commsMgr;
+	}
 	
 	public void openConnection() {
         System.out.println("Opening Connection.");
@@ -66,19 +75,17 @@ public class CommsModel {
     }
 
 	public void sendMsg(String msg, String msgType) {
-        System.out.println("Sending Message:");
-
         try {
             String outputMsg;
-            if (msg == null) {
-                outputMsg = msgType + "\n";
-            } else if (msgType.equals(MAP_FROM_MDF) || msgType.equals(BOT_POS)) {
-                outputMsg = msgType + " " + msg + "\n";
+            if (msgType.equals(MSG_TO_BOT)) {
+            	outputMsg = msg + "\r\n";
             } else {
-                outputMsg = msgType + "\n" + msg + "\n";
+            	outputMsg = msgType + msg + "\n";
             }
+            
 
-            System.out.println("Sending out message:\n" + outputMsg);
+            System.out.println("Sending Message: " + outputMsg);
+
             writer.write(outputMsg);
             writer.flush();
         } catch (IOException e) {

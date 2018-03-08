@@ -14,7 +14,7 @@ public class CommsController {
 	public CommsController(MainController mainMgr) {
 		this.mainMgr = mainMgr;
 		
-		commsModel = new CommsModel();
+		commsModel = CommsModel.getCommsModel();
 		map = mainMgr.getMap();
 	}
 	
@@ -29,5 +29,10 @@ public class CommsController {
 					map.setCellState(row, col, CellState.UNEXPLORED);
 			}
 		}
+		
+		System.out.println(commsModel.isConnected());
+		
+		commsModel.sendMsg("ffff", "~");
+		commsModel.recvMsg();
 	}
 }

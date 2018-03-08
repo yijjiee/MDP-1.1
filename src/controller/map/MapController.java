@@ -116,7 +116,7 @@ public class MapController {
 	public void onExploreClicked(MouseEvent event) {
 		mainMgr.setCoverageLimit(Integer.valueOf(application.getCoverageLimitField().getText()));
 		mainMgr.setTimeLimit(Integer.valueOf(application.getTimeLimitField().getText()));
-		if (mainMgr.getRobot().getState() == RobotState.SIMULATION) {
+		if (application.getExecBox().getValue().equals(Main.KEY_SIMULATION)) {
 			mainMgr.explore();
 		} else {
 			commsMgr.startExplore();
