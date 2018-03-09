@@ -42,6 +42,8 @@ public class Main extends Application {
 	private TextField clField;
 	private Button exploreBtn;
 	private Button fastestPathBtn;
+	private Button loadMap;
+	private Button saveMap;
 	
 	private TextArea mdf1;
 	private TextArea mdf2;
@@ -73,7 +75,7 @@ public class Main extends Application {
 			Main application = Main.getCurrentApplication();
 			MainController mainMgr = new MainController();
 			CommsController commsMgr = new CommsController(mainMgr);
-			MapController mapMgr = new MapController(application, mainMgr, commsMgr);
+			MapController mapMgr = new MapController(application, primaryStage, mainMgr, commsMgr);
 			
 			primaryStage.show();
 		} catch(Exception e) {
@@ -103,6 +105,14 @@ public class Main extends Application {
 	
 	public Button getFastestPathBtn() {
 		return fastestPathBtn;
+	}
+	
+	public Button getLoadMapBtn() {
+		return loadMap;
+	}
+	
+	public Button getSaveMapBtn() {
+		return saveMap;
 	}
 	
 	public TextField getTimeLimitField() {
@@ -222,9 +232,9 @@ public class Main extends Application {
 		
 		// Load/Save Map Buttons
 		HBox lsMap = new HBox();
-		Button loadMap = new Button("Load Map");
+		loadMap = new Button("Load Map");
 		loadMap.setFont(new Font(14));
-		Button saveMap = new Button("Save Map");
+		saveMap = new Button("Save Map");
 		saveMap.setFont(new Font(14));
 		lsMap.setSpacing(20);
 		lsMap.getChildren().addAll(loadMap, saveMap);

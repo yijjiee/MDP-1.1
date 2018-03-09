@@ -32,7 +32,7 @@ public class CommsController {
 		
 		System.out.println(commsModel.isConnected());
 		
-		commsModel.sendMsg("ffff", "~");
-		commsModel.recvMsg();
+		commsModel.sendMsg("hello", "#");
+		System.out.println(commsModel.recvMsg());
 	}
 }

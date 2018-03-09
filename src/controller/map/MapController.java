@@ -5,7 +5,13 @@
 
 package controller.map;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collections;
 
 import controller.MainController;
@@ -19,20 +25,23 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import models.map.CellState;
 import models.map.MapDescriptorFormat;
 import models.map.MapModel;
-import models.robot.RobotState;
 import ui.Main;
 
 public class MapController {
 	private Main application;
+	private Stage primaryStage;
 	private MainController mainMgr;
 	private CommsController commsMgr;
 	private Pane[][] cells;
 	
-	public MapController(Main application, MainController mainMgr, CommsController commsMgr) {
+	public MapController(Main application, Stage primaryStage, MainController mainMgr, CommsController commsMgr) {
 		this.application = application;
+		this.primaryStage = primaryStage;
 		this.mainMgr = mainMgr;
 		this.commsMgr = commsMgr;
 		this.cells = new Pane[MapModel.MAP_ROWS][MapModel.MAP_COLS];
@@ -42,6 +51,8 @@ public class MapController {
 		mainMgr.getMap().addListeners(this::onMapStateChanged);
 		application.getExploreBtn().setOnMouseClicked(this::onExploreClicked);
 		application.getFastestPathBtn().setOnMouseClicked(this::onFastestPathClicked);
+		application.getLoadMapBtn().setOnMouseClicked(this::onLoadMapClicked);
+		application.getSaveMapBtn().setOnMouseClicked(this::onSaveMapClicked);
 		mainMgr.addMapChangedListener(this::onMapChanged);
 		mainMgr.getRobot().addListeners(this::onRobotPosChanged);
 		
@@ -122,6 +133,90 @@ public class MapController {
 			commsMgr.startExplore();
 		}
 		application.getExploreBtn().setDisable(true);
+	}
+	
+	public void onLoadMapClicked(MouseEvent event) {
+		FileChooser fileChooser = new FileChooser();
+		FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("MDF files", "*.mdf");
+		fileChooser.setTitle("Load Map");
+		fileChooser.getExtensionFilters().add(extFilter);
+		File file = fileChooser.showOpenDialog(primaryStage);
+		String mdf1Line = "" , mdf2Line = "";
+		if (file != null) {
+			try {
+				BufferedReader reader = new BufferedReader(new FileReader(file));
+				String readerLine;
+				while ((readerLine = reader.readLine()) != null)
+					mdf1Line += readerLine;
+				
+				reader.close();
+				
+				file = new File(file.toString().substring(0, file.toString().lastIndexOf(".")).concat("_2.mdf"));
+				reader = new BufferedReader(new FileReader(file));
+				readerLine = "";
+				while ((readerLine = reader.readLine()) != null)
+					mdf2Line += readerLine;
+				
+				reader.close();
+			} catch(IOException e) {
+				System.out.println("Loading file error: IOException");
+			}
+		}
+		
+		if (mdf1Line != "" && mdf2Line != "") {
+			application.getMdf1().setText(mdf1Line);
+			application.getMdf2().setText(mdf2Line);
+			
+			String mdf1bin = new BigInteger(mdf1Line, 16).toString(2);
+			String mdf2bin = new BigInteger(mdf2Line, 16).toString(2);
+			
+			mdf1bin = mdf1bin.substring(2, mdf1bin.length() - 2);
+	        mdf2bin = String.join("", Collections.nCopies(mdf2Line.length() * 4 - mdf2bin.length(), "0")) + mdf2bin;
+	        
+	        int mdf1Counter = 0;
+	        int mdf2Counter = 0;
+	        
+	        for (int y = 0; y < MapModel.MAP_ROWS; y++) {
+	            for (int x = 0; x < MapModel.MAP_COLS; x++) {
+	                if (mdf1bin.substring(mdf1Counter, mdf1Counter + 1).equals("0")) {
+	                    mainMgr.getMap().setCellState(y, x, CellState.UNEXPLORED);
+	                } else {
+	                    if (mdf2bin.substring(mdf2Counter, mdf2Counter + 1).equals("1")) {
+	                        mainMgr.getMap().setCellState(y, x, CellState.OBSTACLE);
+	                    }
+	                    else {
+	                    	mainMgr.getMap().setCellState(y, x, CellState.NORMAL);
+	                    }
+	
+	                    mdf2Counter++;
+	                }
+	                mdf1Counter++;
+	            }
+	        }
+		}
+	}
+	
+	public void onSaveMapClicked(MouseEvent event) {
+		FileChooser fileChooser = new FileChooser();
+		FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("MDF files", "*.mdf");
+		fileChooser.setTitle("Save Map");
+		fileChooser.getExtensionFilters().add(extFilter);
+		File file = fileChooser.showSaveDialog(primaryStage);
+		if (file != null) {
+			try {
+				FileWriter fw = new FileWriter(file);
+				fw.write(application.getMdf1().getText());
+				fw.flush();
+				fw.close();
+				file = new File(file.toString().substring(0, file.toString().lastIndexOf(".")).concat("_2.mdf"));
+				fw = new FileWriter(file);
+				fw.write(application.getMdf2().getText());
+				fw.flush();
+				fw.close();
+			} catch (IOException e) {
+				System.out.println("Saving file error: IOException");
+			}
+		}
 	}
 	
 	public void onFastestPathClicked(MouseEvent event) {

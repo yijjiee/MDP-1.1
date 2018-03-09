@@ -55,7 +55,7 @@ public class Sensor {
 	}
 	
 	public void sense(MapModel cachedMap, MapModel realMap) {
-		switch(sensorFace) {
+		switch(sensorFace) {	
 			case NORTH:
 				getObstacle(cachedMap, realMap, 1, 0); break;
 			case SOUTH:
