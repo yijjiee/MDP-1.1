@@ -87,6 +87,8 @@ public class MainController {
 			exploration.startExploration();
 			if (robot.getCol() != 1 || robot.getRow() != 1)
 				fastestPathModel = new FastestPath(robot, MapModel.START_ROW, MapModel.START_COL, transformMap(map));
+		} else {
+			
 		}
 		for(MapChangedInterface listener: mapListeners)
 			listener.onMapChanged();

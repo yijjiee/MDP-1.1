@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import controller.MainController;
+import controller.comms.CommsController;
 import models.map.Cell;
 import models.map.CellState;
 import models.map.MapModel;
@@ -31,6 +32,7 @@ public class Exploration {
 	private int exploredCells;
 	private FastestPath fastestPathModel;
 	private LinkedList<Movement> movements;
+	private CommsController commsMgr;
 	
 	private Timer timer;
 	
@@ -53,6 +55,14 @@ public class Exploration {
 			 * Exploration with Physical Robot
 			 * Details to get from Sensors transmitted from RPI
 			 */
+			NL = robot.getNL();
+			NC = robot.getNC();
+			NR = robot.getNR();
+			WT = robot.getWT();
+			ET = robot.getET();
+			EB = robot.getEB();
+			
+			
 		} else if (robot.getState() == RobotState.SIMULATION) {
 			NL = robot.getNL();
 			NC = robot.getNC();
@@ -60,11 +70,11 @@ public class Exploration {
 			WT = robot.getWT();
 			ET = robot.getET();
 			EB = robot.getEB();
-		}
-		
-		timer = new Timer();
-		timer.schedule(explore, 500, 150);
-		
+
+			
+			timer = new Timer();
+			timer.schedule(explore, 500, 150);
+		}		
 		System.out.println("Exploration Started.");
 	}
 	

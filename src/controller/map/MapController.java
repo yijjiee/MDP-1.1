@@ -137,7 +137,7 @@ public class MapController {
 	
 	public void onLoadMapClicked(MouseEvent event) {
 		FileChooser fileChooser = new FileChooser();
-		FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("MDF files", "*.mdf");
+		FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("MDF files", "*.mdf1");
 		fileChooser.setTitle("Load Map");
 		fileChooser.getExtensionFilters().add(extFilter);
 		File file = fileChooser.showOpenDialog(primaryStage);
@@ -151,7 +151,7 @@ public class MapController {
 				
 				reader.close();
 				
-				file = new File(file.toString().substring(0, file.toString().lastIndexOf(".")).concat("_2.mdf"));
+				file = new File(file.getAbsolutePath().substring(0, file.toString().lastIndexOf(".")).concat(".mdf2"));
 				reader = new BufferedReader(new FileReader(file));
 				readerLine = "";
 				while ((readerLine = reader.readLine()) != null)
@@ -198,7 +198,7 @@ public class MapController {
 	
 	public void onSaveMapClicked(MouseEvent event) {
 		FileChooser fileChooser = new FileChooser();
-		FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("MDF files", "*.mdf");
+		FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("MDF files", "*.mdf1");
 		fileChooser.setTitle("Save Map");
 		fileChooser.getExtensionFilters().add(extFilter);
 		File file = fileChooser.showSaveDialog(primaryStage);
@@ -208,7 +208,7 @@ public class MapController {
 				fw.write(application.getMdf1().getText());
 				fw.flush();
 				fw.close();
-				file = new File(file.toString().substring(0, file.toString().lastIndexOf(".")).concat("_2.mdf"));
+				file = new File(file.getAbsolutePath().substring(0, file.toString().lastIndexOf(".")).concat(".mdf2"));
 				fw = new FileWriter(file);
 				fw.write(application.getMdf2().getText());
 				fw.flush();
