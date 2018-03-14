@@ -54,8 +54,13 @@ public class Sensor {
 		this.sensorFace = sensorFace;
 	}
 	
+	/***
+	 * For Simulation Robot
+	 * @param cachedMap
+	 * @param realMap
+	 */
 	public void sense(MapModel cachedMap, MapModel realMap) {
-		switch(sensorFace) {	
+		switch(sensorFace) {
 			case NORTH:
 				getObstacle(cachedMap, realMap, 1, 0); break;
 			case SOUTH:
@@ -67,6 +72,31 @@ public class Sensor {
 		}
 	}
 	
+	/***
+	 * For Physical Robot
+	 * @param realMap
+	 */
+	public void sense(MapModel realMap) {
+		switch(sensorFace) {	
+			case NORTH:
+				getObstacle(realMap, 1, 0); break;
+			case SOUTH:
+				getObstacle(realMap, -1, 0); break;
+			case EAST:
+				getObstacle(realMap, 0, 1); break;	
+			case WEST:
+				getObstacle(realMap, 0, -1); break;
+		}
+	}
+	
+	/**
+	 * Simulation Robot
+	 * @param cachedMap
+	 * @param map
+	 * @param rowInc
+	 * @param colInc
+	 * @return
+	 */
 	public int getObstacle(MapModel cachedMap, MapModel map, int rowInc, int colInc) {
 		for (int i = 0; i < range; i++) {
 			int x = col + (colInc*i);
@@ -86,5 +116,27 @@ public class Sensor {
 			}
 		}
 		return -1;
+	}
+	
+	/**
+	 * Physical Robot
+	 * @param map
+	 * @param rowInc
+	 * @param colInc
+	 * @return
+	 */
+	public void getObstacle(MapModel map, int rowInc, int colInc) {
+		for (int i = 0; i < range; i++) {
+			int x = col + (colInc*i);
+			int y = row + (rowInc*i);
+			
+			if (x < 0 || x > 14 || y < 0 || y > 19)
+				return;
+			
+			map.setCellState(y, x, CellState.NORMAL);
+
+			if (y == range || x == range)
+				map.setCellState(y, x, CellState.OBSTACLE);
+		}
 	}
 }

@@ -1,44 +1,38 @@
 package controller.comms;
 
-import controller.MainController;
 import models.comms.CommsModel;
-import models.map.CellState;
-import models.map.MapModel;
 
 public class CommsController {
-	private MainController mainMgr;
 	private CommsModel commsModel;
 	
-	private MapModel map;
-	
-	public CommsController(MainController mainMgr) {
-		this.mainMgr = mainMgr;
-		
+	public CommsController() {
 		commsModel = CommsModel.getCommsModel();
-		map = mainMgr.getMap();
 	}
 	
-	public void startExplore() {
+	public void startConnection() {
 		commsModel.openConnection();
 		
-		for (int row = 0; row < MapModel.MAP_ROWS; row++) {
-			for (int col = 0; col < MapModel.MAP_COLS; col++) {
-				if (row < 3 && col < 3 || row > 16 && col > 11)
-					map.setCellState(row, col, CellState.NORMAL);
-				else
-					map.setCellState(row, col, CellState.UNEXPLORED);
-			}
-		}
-		
 		System.out.println(commsModel.isConnected());
-		
-		commsModel.sendMsg("a", "~");
-		try {
-			commsModel.recvMsg();
-		} catch(Exception e) {
-			e.printStackTrace();
+	}
+	
+	public void sendMessage(String msg, String receiver) {
+		if (commsModel.isConnected()) {
+			String outputMsg = "";
+			
+			if (receiver.equals(CommsModel.MSG_TO_BOT)) {
+            	outputMsg = msg + "\r\n";
+            } else {
+            	outputMsg = receiver + msg + "\n";
+            }
+			
+			commsModel.sendMsg(outputMsg);
 		}
-		
-		mainMgr.explore();
+	}
+	
+	public String startRecvMsg() {
+		if (commsModel.isConnected()) {
+			return commsModel.recvMsg();
+		}
+		return null;
 	}
 }

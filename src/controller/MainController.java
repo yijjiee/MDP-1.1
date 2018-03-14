@@ -7,9 +7,11 @@ import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import controller.comms.CommsController;
 import interfaces.MapChangedInterface;
 import models.algo.Exploration;
 import models.algo.FastestPath;
+import models.comms.CommsModel;
 import models.map.Cell;
 import models.map.CellState;
 import models.map.MapModel;
@@ -26,6 +28,8 @@ public class MainController {
 	private Robot robot;
 	private Exploration exploration;
 	private FastestPath fastestPathModel;
+	
+	private CommsController commsMgr;
 	
 	private double timeLimit;
 	private double coverageLimit;
@@ -88,7 +92,32 @@ public class MainController {
 			if (robot.getCol() != 1 || robot.getRow() != 1)
 				fastestPathModel = new FastestPath(robot, MapModel.START_ROW, MapModel.START_COL, transformMap(map));
 		} else {
+			commsMgr = new CommsController();
+			commsMgr.startConnection();
 			
+			Runnable task = new Runnable() {
+				public void run() {
+					String rtnMsg = commsMgr.startRecvMsg();
+					
+					if (!rtnMsg.equals(null)) {
+						System.out.println(rtnMsg);
+					}
+				}
+			};
+			
+			Thread t = new Thread(task);
+			t.start();
+			
+			for (int row = 0; row < MapModel.MAP_ROWS; row++) {
+				for (int col = 0; col < MapModel.MAP_COLS; col++) {
+					if (row < 3 && col < 3 || row > 16 && col > 11)
+						map.setCellState(row, col, CellState.NORMAL);
+					else
+						map.setCellState(row, col, CellState.UNEXPLORED);
+				}
+			}
+			
+			commsMgr.sendMessage("s", CommsModel.MSG_TO_BOT);
 		}
 		for(MapChangedInterface listener: mapListeners)
 			listener.onMapChanged();

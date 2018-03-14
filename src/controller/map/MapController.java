@@ -30,20 +30,19 @@ import javafx.stage.Stage;
 import models.map.CellState;
 import models.map.MapDescriptorFormat;
 import models.map.MapModel;
+import models.robot.RobotState;
 import ui.Main;
 
 public class MapController {
 	private Main application;
 	private Stage primaryStage;
 	private MainController mainMgr;
-	private CommsController commsMgr;
 	private Pane[][] cells;
 	
-	public MapController(Main application, Stage primaryStage, MainController mainMgr, CommsController commsMgr) {
+	public MapController(Main application, Stage primaryStage, MainController mainMgr) {
 		this.application = application;
 		this.primaryStage = primaryStage;
 		this.mainMgr = mainMgr;
-		this.commsMgr = commsMgr;
 		this.cells = new Pane[MapModel.MAP_ROWS][MapModel.MAP_COLS];
 		
 		// Add Listeners
@@ -127,11 +126,14 @@ public class MapController {
 	public void onExploreClicked(MouseEvent event) {
 		mainMgr.setCoverageLimit(Integer.valueOf(application.getCoverageLimitField().getText()));
 		mainMgr.setTimeLimit(Integer.valueOf(application.getTimeLimitField().getText()));
-		if (application.getExecBox().getValue().equals(Main.KEY_SIMULATION)) {
-			mainMgr.explore();
-		} else {
-			commsMgr.startExplore();
-		}
+
+		if (application.getExecBox().getValue().equals(Main.KEY_SIMULATION))
+			mainMgr.getRobot().setState(RobotState.SIMULATION);
+		else
+			mainMgr.getRobot().setState(RobotState.PHYSICAL);
+		
+		mainMgr.explore();
+
 		application.getExploreBtn().setDisable(true);
 	}
 	

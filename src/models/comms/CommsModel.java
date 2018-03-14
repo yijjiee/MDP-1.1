@@ -10,8 +10,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class CommsModel {
-	private static final String MSG_TO_ANDROID = "#";
-	private static final String MSG_TO_BOT = "~";
+	public static final String MSG_TO_ANDROID = "#";
+	public static final String MSG_TO_BOT = "~";
 	
 	private static CommsModel commsMgr;
 	private static Socket conn;
@@ -74,19 +74,11 @@ public class CommsModel {
         }
     }
 
-	public void sendMsg(String msg, String msgType) {
+	public void sendMsg(String msg) {
         try {
-            String outputMsg;
-            if (msgType.equals(MSG_TO_BOT)) {
-            	outputMsg = msg + "\r\n";
-            } else {
-            	outputMsg = msgType + msg + "\n";
-            }
-            
+            System.out.println("Sending Message: " + msg);
 
-            System.out.println("Sending Message: " + outputMsg);
-
-            writer.write(outputMsg);
+            writer.write(msg);
             writer.flush();
         } catch (IOException e) {
             System.out.println("IOException - Sending Message");

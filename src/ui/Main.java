@@ -6,7 +6,6 @@
 package ui;
 	
 import controller.MainController;
-import controller.comms.CommsController;
 import controller.map.MapController;
 import javafx.application.Application;
 import javafx.geometry.Pos;
@@ -74,8 +73,7 @@ public class Main extends Application {
 			
 			Main application = Main.getCurrentApplication();
 			MainController mainMgr = new MainController();
-			CommsController commsMgr = new CommsController(mainMgr);
-			MapController mapMgr = new MapController(application, primaryStage, mainMgr, commsMgr);
+			MapController mapMgr = new MapController(application, primaryStage, mainMgr);
 			
 			primaryStage.show();
 		} catch(Exception e) {

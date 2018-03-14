@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import interfaces.RobotInterface;
+import models.map.CellState;
 import models.map.MapModel;
 
 public class Robot {
@@ -157,12 +158,21 @@ public class Robot {
 	}
 	
 	public void sense(MapModel cachedMap, MapModel map) {
-		NL.sense(cachedMap, map);
-		NC.sense(cachedMap, map);
-		NR.sense(cachedMap, map);
-		WT.sense(cachedMap, map);
-		ET.sense(cachedMap, map);
-		EB.sense(cachedMap, map);
+		if (cachedMap != null) {
+			NL.sense(cachedMap, map);
+			NC.sense(cachedMap, map);
+			NR.sense(cachedMap, map);
+			WT.sense(cachedMap, map);
+			ET.sense(cachedMap, map);
+			EB.sense(cachedMap, map);
+		} else {
+			NL.sense(map);
+			NC.sense(map);
+			NR.sense(map);
+			WT.sense(map);
+			ET.sense(map);
+			EB.sense(map);
+		}
 	}
 	
 	public void addListeners(RobotInterface listener) {
