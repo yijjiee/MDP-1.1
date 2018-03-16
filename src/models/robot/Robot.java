@@ -24,7 +24,7 @@ public class Robot {
 	/* Sensors and data can be get from ARDUINO below
 	 *	Speed
 	 *	Sensors:*/
-	private Sensor NL, NC, NR, WT, ET, EB;
+	private Sensor NL, NC, NR, ET, WB, WT;
 	
 	private boolean finish;
 	private RobotState state;
@@ -40,9 +40,9 @@ public class Robot {
 		NL = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.NORTH);
 		NC = new Sensor(SENSOR_SR, row + 1, col, Direction.NORTH);
 		NR = new Sensor(SENSOR_SR, row + 1, col + 1, Direction.NORTH);
-		WT = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.WEST);
 		ET = new Sensor(SENSOR_LR, row + 1, col + 1, Direction.EAST);
-		EB = new Sensor(SENSOR_SR, row - 1, col + 1, Direction.EAST);
+		WB = new Sensor(SENSOR_SR, row - 1, col - 1, Direction.WEST);
+		WT = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.WEST);
 	}
 
 	public void setRobotPos(int row, int col) {
@@ -90,16 +90,16 @@ public class Robot {
 		return NR;
 	}
 
-	public Sensor getWT() {
-		return WT;
-	}
-
 	public Sensor getET() {
 		return ET;
 	}
 	
-	public Sensor getEB() {
-		return EB;
+	public Sensor getWB() {
+		return WB;
+	}
+
+	public Sensor getWT() {
+		return WT;
 	}
 	
 	public void move(Movement move) {
@@ -162,16 +162,16 @@ public class Robot {
 			NL.sense(cachedMap, map);
 			NC.sense(cachedMap, map);
 			NR.sense(cachedMap, map);
-			WT.sense(cachedMap, map);
 			ET.sense(cachedMap, map);
-			EB.sense(cachedMap, map);
+			WB.sense(cachedMap, map);
+			WT.sense(cachedMap, map);
 		} else {
 			NL.sense(map);
 			NC.sense(map);
 			NR.sense(map);
-			WT.sense(map);
 			ET.sense(map);
-			EB.sense(map);
+			WB.sense(map);
+			WT.sense(map);
 		}
 	}
 	
@@ -189,30 +189,30 @@ public class Robot {
 			NL.setSensor(row + 1, col - 1, Direction.NORTH);
 			NC.setSensor(row + 1, col, Direction.NORTH);
 			NR.setSensor(row + 1, col + 1, Direction.NORTH);
-			WT.setSensor(row + 1, col - 1, Direction.WEST);
 			ET.setSensor(row + 1, col + 1, Direction.EAST);
-			EB.setSensor(row - 1, col + 1, Direction.EAST);
+			WB.setSensor(row - 1, col - 1, Direction.WEST);
+			WT.setSensor(row + 1, col - 1, Direction.WEST);
 		} else if (robotDir == Direction.SOUTH) {
 			NL.setSensor(row - 1, col + 1, Direction.SOUTH);
 			NC.setSensor(row - 1, col, Direction.SOUTH);
 			NR.setSensor(row - 1, col - 1, Direction.SOUTH);
-			WT.setSensor(row - 1, col + 1, Direction.EAST);
 			ET.setSensor(row - 1, col - 1, Direction.WEST);
-			EB.setSensor(row + 1, col - 1, Direction.WEST);
+			WB.setSensor(row + 1, col + 1, Direction.EAST);
+			WT.setSensor(row - 1, col + 1, Direction.EAST);
 		} else if (robotDir == Direction.EAST) {
 			NL.setSensor(row + 1, col + 1, Direction.EAST);
 			NC.setSensor(row, col + 1, Direction.EAST);
 			NR.setSensor(row - 1, col + 1, Direction.EAST);
-			WT.setSensor(row + 1, col + 1, Direction.NORTH);
 			ET.setSensor(row - 1, col + 1, Direction.SOUTH);
-			EB.setSensor(row - 1, col - 1, Direction.SOUTH);
+			WB.setSensor(row + 1, col - 1, Direction.NORTH);
+			WT.setSensor(row + 1, col + 1, Direction.NORTH);
 		} else {
 			NL.setSensor(row - 1, col - 1, Direction.WEST);
 			NC.setSensor(row, col - 1, Direction.WEST);
 			NR.setSensor(row + 1, col - 1, Direction.WEST);
-			WT.setSensor(row - 1, col - 1, Direction.SOUTH);
 			ET.setSensor(row + 1, col - 1, Direction.NORTH);
-			EB.setSensor(row + 1, col + 1, Direction.NORTH);
+			WB.setSensor(row - 1, col + 1, Direction.SOUTH);
+			WT.setSensor(row - 1, col - 1, Direction.SOUTH);			
 		}
 	}
 }

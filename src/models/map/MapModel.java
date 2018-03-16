@@ -38,7 +38,8 @@ public class MapModel {
 	}
 	
 	public void setCellState(int row, int col, CellState state) {
-		grid[row][col].setState(state);
+		if (row >= 0 && row < MAP_ROWS || col >= 0 && col < MAP_COLS)
+			grid[row][col].setState(state);
 		notifyChange(row, col);		
 	}
 	

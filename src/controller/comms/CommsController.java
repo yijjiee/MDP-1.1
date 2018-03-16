@@ -11,7 +11,11 @@ public class CommsController {
 	
 	public void startConnection() {
 		commsModel.openConnection();
-		
+	}
+	
+	public void closeConnection() {
+		if (commsModel.isConnected())
+			commsModel.closeConnection();
 		System.out.println(commsModel.isConnected());
 	}
 	
@@ -34,5 +38,9 @@ public class CommsController {
 			return commsModel.recvMsg();
 		}
 		return null;
+	}
+	
+	public boolean isConnected() {
+		return commsModel.isConnected();
 	}
 }

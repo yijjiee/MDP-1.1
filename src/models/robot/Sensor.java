@@ -126,7 +126,7 @@ public class Sensor {
 	 * @return
 	 */
 	public void getObstacle(MapModel map, int rowInc, int colInc) {
-		for (int i = 0; i < range; i++) {
+		for (int i = 1; i <= range; i++) {
 			int x = col + (colInc*i);
 			int y = row + (rowInc*i);
 			
@@ -135,8 +135,9 @@ public class Sensor {
 			
 			map.setCellState(y, x, CellState.NORMAL);
 
-			if (y == range || x == range)
+			if (i == range) {
 				map.setCellState(y, x, CellState.OBSTACLE);
+			}
 		}
 	}
 }

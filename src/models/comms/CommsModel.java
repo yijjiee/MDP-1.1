@@ -97,7 +97,6 @@ public class CommsModel {
 
             if (input != null && input.length() > 0) {
                 sb.append(input);
-                System.out.println(sb.toString());
                 return sb.toString();
             }
         } catch (IOException e) {

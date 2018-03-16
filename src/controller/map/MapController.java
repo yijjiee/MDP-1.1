@@ -88,9 +88,14 @@ public class MapController {
 		else
 			stylesheet = "-fx-background-color: black, red;";
 		
+		String mdf1 = toString(MapDescriptorFormat.MDF1);
+		String mdf2 = toString(MapDescriptorFormat.MDF2);
+		mainMgr.setMdf1(mdf1);
+		mainMgr.setMdf2(mdf2);
+		
 		Platform.runLater(() -> pane.setStyle(stylesheet));
-		Platform.runLater(() -> application.getMdf1().setText(toString(MapDescriptorFormat.MDF1)));
-		Platform.runLater(() -> application.getMdf2().setText(toString(MapDescriptorFormat.MDF2)));
+		Platform.runLater(() -> application.getMdf1().setText(mdf1));
+		Platform.runLater(() -> application.getMdf2().setText(mdf2));
 	}
 	
 	public void onCellClicked(MouseEvent event) {
@@ -133,8 +138,6 @@ public class MapController {
 			mainMgr.getRobot().setState(RobotState.PHYSICAL);
 		
 		mainMgr.explore();
-
-		application.getExploreBtn().setDisable(true);
 	}
 	
 	public void onLoadMapClicked(MouseEvent event) {
@@ -223,7 +226,6 @@ public class MapController {
 	
 	public void onFastestPathClicked(MouseEvent event) {
 		mainMgr.runFastestPath();
-		application.getFastestPathBtn().setDisable(true);
 	}
 	
 	public void onRobotPosChanged() {

@@ -24,9 +24,9 @@ public class Exploration {
 	private Sensor NL;
 	private Sensor NC;
 	private Sensor NR;
-	private Sensor WT;
 	private Sensor ET;
-	private Sensor EB;
+	private Sensor WB;
+	private Sensor WT;
 	private double timeLimit;
 	private double coverageLimit;
 	private int exploredCells;
@@ -49,6 +49,10 @@ public class Exploration {
 		 */
 	}
 	
+	public void setCommsMgr(CommsController commsMgr) {
+		this.commsMgr = commsMgr;
+	}
+	
 	public void startExploration() {
 		if (robot.getState() == RobotState.PHYSICAL) {
 			/*
@@ -58,18 +62,30 @@ public class Exploration {
 			NL = robot.getNL();
 			NC = robot.getNC();
 			NR = robot.getNR();
-			WT = robot.getWT();
 			ET = robot.getET();
-			EB = robot.getEB();
+			WB = robot.getWB();
+			WT = robot.getWT();
 			
+			getExploredCells();
+			if (robot.getRow() == MapModel.START_ROW && robot.getCol() == MapModel.START_COL) {
+				if (exploredCells < 100)
+					doNextMove();
+			} else {
+				if (exploredCells < (coverageLimit/100)*300) {
+					 doNextMove();
+				} else {
+					startFastestPath();
+					System.out.println("Exploration Ended.");
+				}
+			}
 			
 		} else if (robot.getState() == RobotState.SIMULATION) {
 			NL = robot.getNL();
 			NC = robot.getNC();
 			NR = robot.getNR();
-			WT = robot.getWT();
 			ET = robot.getET();
-			EB = robot.getEB();
+			WB = robot.getWB();
+			WT = robot.getWT();
 
 			
 			timer = new Timer();
@@ -230,11 +246,20 @@ public class Exploration {
 	
 	private void doNextMove() {
 		if (!checkLeftObstacle()) {
+			if (commsMgr != null) {
+				commsMgr.sendMessage("lf", "~");
+			}
 			robot.move(Movement.TURNLEFT);
 			robot.move(Movement.FORWARD);
 		} else if (checkForwardObstacle()) {
+			if (commsMgr != null) {
+				commsMgr.sendMessage("r", "~");
+			}
 			robot.move(Movement.TURNRIGHT);
 		} else {
+			if (commsMgr != null) {
+				commsMgr.sendMessage("f", "~");
+			}
 			robot.move(Movement.FORWARD);
 		}
 	}
