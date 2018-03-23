@@ -9,6 +9,7 @@ import java.util.TimerTask;
 
 import controller.comms.CommsController;
 import interfaces.MapChangedInterface;
+import javafx.application.Platform;
 import models.algo.Exploration;
 import models.algo.FastestPath;
 import models.comms.CommsModel;
@@ -19,6 +20,7 @@ import models.robot.Direction;
 import models.robot.Movement;
 import models.robot.Robot;
 import models.robot.RobotState;
+import ui.Main;
 
 public class MainController {
 	private List<MapChangedInterface> mapListeners;
@@ -47,7 +49,22 @@ public class MainController {
 		robot = new Robot(1, 1, RobotState.SIMULATION);
 		commsMgr = new CommsController();
 		commsMgr.startConnection();
-		
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				commsMgr.startConnection();
+				String msg = null;
+				if (commsMgr.isConnected()) {
+					commsMgr.sendMessage("setrobot:1,1,1/", CommsModel.MSG_TO_ANDROID);
+					msg = commsMgr.startRecvMsg();
+				}
+				
+				if (msg.equals(CommsModel.MSG_TO_ANDROID + "se")) {
+					robot.setState(RobotState.PHYSICAL);
+					explore();
+				}
+			}
+		});
+		t.start();
 		
 		for (int i = 0; i < MapModel.MAP_ROWS; i++) {
 			for (int j = 0; j < MapModel.MAP_COLS; j++) {
@@ -74,6 +91,10 @@ public class MainController {
 	
 	public Robot getRobot() {
 		return robot;
+	}
+	
+	public CommsController getCommsMgr() {
+		return commsMgr;
 	}
 	
 	public void setTimeLimit(int timeLimit) {
@@ -109,80 +130,74 @@ public class MainController {
 			for(MapChangedInterface listener: mapListeners)
 				listener.onMapChanged();
 		} else {
-			if (commsMgr.isConnected()) {
-//			Runnable task = new Runnable() {
-//				public void run() {
-//					String rtnMsg = commsMgr.startRecvMsg();
-//					
-//					
-//					if (!rtnMsg.equals(null)) {
-//						System.out.println(rtnMsg);
-//						String [] sensorsData = rtnMsg.split(";");
-//						robot.getNL().setRange(Integer.valueOf(sensorsData[0]));
-//						robot.getNC().setRange(Integer.valueOf(sensorsData[1]));
-//						robot.getNR().setRange(Integer.valueOf(sensorsData[2]));
-//						robot.getET().setRange(Integer.valueOf(sensorsData[3]));
-//						robot.getEB().setRange(Integer.valueOf(sensorsData[4]));
-//						robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
-//					}
-//					robot.sense(null, map);
-//				}
-//			};
-//			
-//			Thread t = new Thread(task);
-//			t.start();
+			String rtnMsg = null;
 			
-				for (int row = 0; row < MapModel.MAP_ROWS; row++) {
-					for (int col = 0; col < MapModel.MAP_COLS; col++) {
-						if (row < 3 && col < 3 || row > 16 && col > 11)
-							map.setCellState(row, col, CellState.NORMAL);
-						else
-							map.setCellState(row, col, CellState.UNEXPLORED);
-					}
-				}
-				
-				//Pre-exploration
-				//For Android
-				String rDir = "";
-				switch(robot.getRobotDir()) {
-					case NORTH:
-						rDir = "1";
-						break;
-					case SOUTH:
-						rDir = "2";
-						break;
-					case EAST:
-						rDir = "3";
-						break;
-					case WEST:
-						rDir = "4";
-						break;
-				}
-				commsMgr.sendMessage("mdf1;" + mdf1, CommsModel.MSG_TO_ANDROID);
-				commsMgr.sendMessage("mdf2;" + mdf2, CommsModel.MSG_TO_ANDROID);
-				commsMgr.sendMessage("rposdir;" + robot.getRow() + ";" + robot.getCol() + ";" + rDir, CommsModel.MSG_TO_ANDROID);
-				
-				//For Arduino
-				commsMgr.sendMessage("S", CommsModel.MSG_TO_BOT);
-				String rtnMsg = commsMgr.startRecvMsg();
-				
-				
-				if (!rtnMsg.equals(null)) {
-					System.out.println(rtnMsg);
-					String [] sensorsData = rtnMsg.split(";");
-					robot.getNL().setRange(Integer.valueOf(sensorsData[0]));
-					robot.getNC().setRange(Integer.valueOf(sensorsData[1]));
-					robot.getNR().setRange(Integer.valueOf(sensorsData[2]));
-					robot.getET().setRange(Integer.valueOf(sensorsData[3]));
-					robot.getWB().setRange(Integer.valueOf(sensorsData[4]));
-					robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
-				}
-				
-				robot.sense(null, map);
-				exploration = new Exploration(map, robot, timeLimit, coverageLimit);
-				exploration.setCommsMgr(commsMgr);
-				exploration.startExploration();
+			String rDir = "";
+			switch(robot.getRobotDir()) {
+				case NORTH:
+					rDir = "1";
+					break;
+				case SOUTH:
+					rDir = "2";
+					break;
+				case EAST:
+					rDir = "3";
+					break;
+				case WEST:
+					rDir = "4";
+					break;
 			}
+//			if (!rtnMsg.equals(null)) {
+//				System.out.println(rtnMsg);
+//				String [] sensorsData = rtnMsg.split(";");
+//				robot.getNL().setRange(Integer.valueOf(sensorsData[0]));
+//				robot.getNC().setRange(Integer.valueOf(sensorsData[1]));
+//				robot.getNR().setRange(Integer.valueOf(sensorsData[2]));
+//				robot.getET().setRange(Integer.valueOf(sensorsData[3]));
+//				robot.getWB().setRange(Integer.valueOf(sensorsData[4]));
+//				robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
+//			}
+//			robot.sense(null, map);
+			
+			for (int row = 0; row < MapModel.MAP_ROWS; row++) {
+				for (int col = 0; col < MapModel.MAP_COLS; col++) {
+					if (row < 3 && col < 3 || row > 16 && col > 11)
+						map.setCellState(row, col, CellState.NORMAL);
+					else
+						map.setCellState(row, col, CellState.UNEXPLORED);
+				}
+			}
+			commsMgr.sendMessage("setrobot:" + robot.getCol() + "," + robot.getRow() + "," + rDir + "/", CommsModel.MSG_TO_ANDROID);
+			commsMgr.sendMessage("mdf1:" + mdf1 + "/", CommsModel.MSG_TO_ANDROID);
+			commsMgr.sendMessage("mdf2:" + mdf2 + "/", CommsModel.MSG_TO_ANDROID);
+
+			//Pre-exploration
+			//For Android
+			
+			//For Arduino
+			commsMgr.sendMessage("s", CommsModel.MSG_TO_BOT);
+			rtnMsg = commsMgr.startRecvMsg();
+			
+			if (!rtnMsg.equals(null)) {
+				System.out.println(rtnMsg);
+				String [] sensorsData = rtnMsg.split(";");
+				robot.getNL().setRange(Integer.valueOf(sensorsData[0]));
+				robot.getNC().setRange(Integer.valueOf(sensorsData[1]));
+				robot.getNR().setRange(Integer.valueOf(sensorsData[2]));
+				robot.getET().setRange(Integer.valueOf(sensorsData[3]));
+				robot.getWB().setRange(Integer.valueOf(sensorsData[4]));
+				robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
+			}
+			
+			robot.sense(null, map);
+			exploration = new Exploration(map, robot, 360, 100);
+			exploration.setCommsMgr(commsMgr);
+			exploration.startExploration();
+			
+//			rtnMsg = commsMgr.startRecvMsg();
+//			System.out.println(rtnMsg);
+//			if (rtnMsg.equals("#sfp"))
+//				startFastestPath();
 		}
 	}
 	

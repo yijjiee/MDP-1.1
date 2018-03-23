@@ -89,18 +89,18 @@ public class CommsModel {
     }
 	
 	public String recvMsg() {
-        System.out.println("Receiving Message: ");
-
         try {
             StringBuilder sb = new StringBuilder();
             String input = reader.readLine();
-
+            
+            System.out.println("Receiving message: " + input);
+            
             if (input != null && input.length() > 0) {
                 sb.append(input);
                 return sb.toString();
             }
         } catch (IOException e) {
-            System.out.println(" IOException - Receiving Message");
+            System.out.println("IOException - Receiving Message");
         } catch (Exception e) {
             System.out.println("Exception - Receiving Message");
             System.out.println(e.toString());

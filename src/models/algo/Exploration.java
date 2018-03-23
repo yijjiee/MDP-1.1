@@ -9,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import controller.MainController;
 import controller.comms.CommsController;
+import models.comms.CommsModel;
 import models.map.Cell;
 import models.map.CellState;
 import models.map.MapModel;
@@ -35,6 +36,8 @@ public class Exploration {
 	private CommsController commsMgr;
 	
 	private Timer timer;
+	
+	private long startTime;
 	
 	private final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
 	
@@ -66,19 +69,27 @@ public class Exploration {
 			WB = robot.getWB();
 			WT = robot.getWT();
 			
-			getExploredCells();
-			if (robot.getRow() == MapModel.START_ROW && robot.getCol() == MapModel.START_COL) {
-				if (exploredCells < 100)
-					doNextMove();
-			} else {
-				if (exploredCells < (coverageLimit/100)*300) {
-					 doNextMove();
-				} else {
-					startFastestPath();
-					System.out.println("Exploration Ended.");
-				}
-			}
+			// Set a TimerTask to count down with time limit
+			startTime = System.currentTimeMillis();
 			
+			while ((System.currentTimeMillis() - startTime)/1000 < timeLimit) {
+				getExploredCells();
+				if (robot.getRow() == MapModel.START_ROW && robot.getCol() == MapModel.START_COL) {
+					if (exploredCells > 100) {
+						timeLimit = 0;
+					} else
+						doNextMove();
+				} else {
+					if (exploredCells < (coverageLimit/100)*300) {
+						 doNextMove();
+					} else {
+						startFastestPath();
+						while (!movements.isEmpty())
+							robot.move(movements.pop());
+						System.out.println("Exploration Ended.");
+					}
+				}
+			}			
 		} else if (robot.getState() == RobotState.SIMULATION) {
 			NL = robot.getNL();
 			NC = robot.getNC();
@@ -101,9 +112,8 @@ public class Exploration {
 				if (exploredCells > 100) {
 					timer.cancel();
 				}
-				else {
+				else
 					doNextMove();
-				}
 			} else {
 				 if (exploredCells < (coverageLimit/100)*300) {
 					 doNextMove();
@@ -245,22 +255,81 @@ public class Exploration {
 	}
 	
 	private void doNextMove() {
+		String rtnMsg = null;
 		if (!checkLeftObstacle()) {
 			if (commsMgr != null) {
-				commsMgr.sendMessage("lf", "~");
+				commsMgr.sendMessage("l", CommsModel.MSG_TO_BOT);
+				commsMgr.startRecvMsg();
+				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
 			}
 			robot.move(Movement.TURNLEFT);
 			robot.move(Movement.FORWARD);
 		} else if (checkForwardObstacle()) {
 			if (commsMgr != null) {
-				commsMgr.sendMessage("r", "~");
+				commsMgr.sendMessage("r", CommsModel.MSG_TO_BOT);
 			}
 			robot.move(Movement.TURNRIGHT);
 		} else {
 			if (commsMgr != null) {
-				commsMgr.sendMessage("f", "~");
+				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
 			}
 			robot.move(Movement.FORWARD);
+		}
+		if (commsMgr.isConnected() && robot.getState() == RobotState.PHYSICAL) {
+			String rDir = "";
+			switch(robot.getRobotDir()) {
+				case NORTH:
+					rDir = "1";
+					break;
+				case SOUTH:
+					rDir = "2";
+					break;
+				case EAST:
+					rDir = "3";
+					break;
+				case WEST:
+					rDir = "4";
+					break;
+			}
+			commsMgr.sendMessage("setrobot:" + robot.getCol() + "," + robot.getRow() + "," + rDir + "/", CommsModel.MSG_TO_ANDROID);
+			rtnMsg = commsMgr.startRecvMsg();
+			
+			if (rtnMsg != null) {
+				String [] sensorsData = rtnMsg.split(";");
+				robot.getNL().setRange(Integer.valueOf(sensorsData[0]));
+				robot.getNC().setRange(Integer.valueOf(sensorsData[1]));
+				robot.getNR().setRange(Integer.valueOf(sensorsData[2]));
+				robot.getET().setRange(Integer.valueOf(sensorsData[3]));
+				robot.getWB().setRange(Integer.valueOf(sensorsData[4]));
+				robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
+	
+				if (Integer.valueOf(sensorsData[0]) == 1 && Integer.valueOf(sensorsData[2]) == 1) {
+					commsMgr.sendMessage("x", CommsModel.MSG_TO_BOT);
+					rtnMsg = commsMgr.startRecvMsg();
+					sensorsData = rtnMsg.split(";");
+					robot.getNL().setRange(Integer.valueOf(sensorsData[0]));
+					robot.getNC().setRange(Integer.valueOf(sensorsData[1]));
+					robot.getNR().setRange(Integer.valueOf(sensorsData[2]));
+					robot.getET().setRange(Integer.valueOf(sensorsData[3]));
+					robot.getWB().setRange(Integer.valueOf(sensorsData[4]));
+					robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
+				}
+				
+				if (Integer.valueOf(sensorsData[4]) == 1 && Integer.valueOf(sensorsData[5]) == 1) {
+					commsMgr.sendMessage("y", CommsModel.MSG_TO_BOT);
+					rtnMsg = commsMgr.startRecvMsg();
+					sensorsData = rtnMsg.split(";");
+					robot.getNL().setRange(Integer.valueOf(sensorsData[0]));
+					robot.getNC().setRange(Integer.valueOf(sensorsData[1]));
+					robot.getNR().setRange(Integer.valueOf(sensorsData[2]));
+					robot.getET().setRange(Integer.valueOf(sensorsData[3]));
+					robot.getWB().setRange(Integer.valueOf(sensorsData[4]));
+					robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
+				}
+				
+				robot.updateSensorsLocation();
+				robot.sense(null, map);
+			}
 		}
 	}
 	

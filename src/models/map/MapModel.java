@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import interfaces.MapListener;
+import javafx.application.Platform;
 
 public class MapModel {
 	public static final int MAP_ROWS = 20;
@@ -62,6 +63,6 @@ public class MapModel {
 	
 	public void notifyChange(int row, int col) {
 		for (MapListener ml : listeners)
-			ml.onMapStateChange(row, col);
+			Platform.runLater(() -> ml.onMapStateChange(row, col));
 	}
 }

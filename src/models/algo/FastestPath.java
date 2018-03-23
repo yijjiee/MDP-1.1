@@ -107,7 +107,7 @@ public class FastestPath {
 				else {
 					cameFrom[nRow][nCol] = currentCell;
 					gScore[nRow][nCol] = tempGscore;
-					fScore[nRow][nCol] = gScore[nRow][nCol] + getDistance(nRow, nCol, endRow, endCol);
+					fScore[nRow][nCol] = gScore[nRow][nCol];
 				}	
 			}
 		}
@@ -121,30 +121,32 @@ public class FastestPath {
 			case 1:
 				switch (robotDir) {
 					case NORTH:
+						turnCost = 1;
 						break;
 					case SOUTH:
-						turnCost = 20;
+						turnCost = 6;
 						break;
 					case EAST:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 					case WEST:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 				}
 				return turnCost;
 			case -1:
 				switch (robotDir) {
 					case NORTH:
-						turnCost = 20;
+						turnCost = 6;
 						break;
 					case SOUTH:
+						turnCost = 1;
 						break;
 					case EAST:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 					case WEST:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 				}
 				return turnCost;
@@ -154,30 +156,32 @@ public class FastestPath {
 			case 1:
 				switch (robotDir) {
 					case NORTH:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 					case SOUTH:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 					case EAST:
+						turnCost = 1;
 						break;
 					case WEST:
-						turnCost = 20;
+						turnCost = 6;
 						break;
 				}
 				return turnCost;
 			case -1:
 				switch (robotDir) {
 					case NORTH:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 					case SOUTH:
-						turnCost = 10;
+						turnCost = 3;
 						break;
 					case EAST:
-						turnCost = 20;
+						turnCost = 6;
 						break;
 					case WEST:
+						turnCost = 1;
 						break;
 				}
 				return turnCost;

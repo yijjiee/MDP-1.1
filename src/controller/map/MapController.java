@@ -27,6 +27,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import models.comms.CommsModel;
 import models.map.CellState;
 import models.map.MapDescriptorFormat;
 import models.map.MapModel;
@@ -92,6 +93,11 @@ public class MapController {
 		String mdf2 = toString(MapDescriptorFormat.MDF2);
 		mainMgr.setMdf1(mdf1);
 		mainMgr.setMdf2(mdf2);
+		
+//		if (mainMgr.getCommsMgr() != null && mainMgr.getCommsMgr().isConnected()) {
+//			mainMgr.getCommsMgr().sendMessage("mdf1: " + mdf1, CommsModel.MSG_TO_ANDROID);
+//			mainMgr.getCommsMgr().sendMessage("mdf2: " + mdf2, CommsModel.MSG_TO_ANDROID);
+//		}
 		
 		Platform.runLater(() -> pane.setStyle(stylesheet));
 		Platform.runLater(() -> application.getMdf1().setText(mdf1));
@@ -251,8 +257,7 @@ public class MapController {
 				StackPane.setAlignment(robotHead, Pos.CENTER_LEFT);
 				break;
 		}
-
-		mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
+		mainMgr.getRobot().sense(null, mainMgr.getMap());
 	}
 	
 	public String toString(MapDescriptorFormat format) {

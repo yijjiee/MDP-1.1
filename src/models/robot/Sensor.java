@@ -126,17 +126,26 @@ public class Sensor {
 	 * @return
 	 */
 	public void getObstacle(MapModel map, int rowInc, int colInc) {
-		for (int i = 1; i <= range; i++) {
-			int x = col + (colInc*i);
-			int y = row + (rowInc*i);
+		System.out.println(row + " " + col);
+		if (range == -1) {
+			int x = col + Math.abs(range*colInc);
+			int y = row + Math.abs(range*rowInc);
 			
-			if (x < 0 || x > 14 || y < 0 || y > 19)
-				return;
-			
-			map.setCellState(y, x, CellState.NORMAL);
-
-			if (i == range) {
-				map.setCellState(y, x, CellState.OBSTACLE);
+			if ((x >= 0 && x <= 14) && (y >= 0 && y <= 19))
+				map.setCellState(y, x, CellState.NORMAL);
+		} else {
+			for (int i = 1; i <= range; i++) {
+				int x = col + (colInc*i);
+				int y = row + (rowInc*i);
+				
+				if (x < 0 || x > 14 || y < 0 || y > 19)
+					continue;
+				
+				map.setCellState(y, x, CellState.NORMAL);
+	
+				if (i == range) {
+					map.setCellState(y, x, CellState.OBSTACLE);
+				}
 			}
 		}
 	}

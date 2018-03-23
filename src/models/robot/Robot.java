@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import interfaces.RobotInterface;
+import javafx.application.Platform;
 import models.map.CellState;
 import models.map.MapModel;
 
@@ -43,6 +44,15 @@ public class Robot {
 		ET = new Sensor(SENSOR_LR, row + 1, col + 1, Direction.EAST);
 		WB = new Sensor(SENSOR_SR, row - 1, col - 1, Direction.WEST);
 		WT = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.WEST);
+		
+//		robotDir = Direction.NORTH;
+//		
+//		NL = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.NORTH);
+//		NC = new Sensor(SENSOR_SR, row + 1, col, Direction.NORTH);
+//		NR = new Sensor(SENSOR_SR, row + 1, col + 1, Direction.NORTH);
+//		ET = new Sensor(SENSOR_LR, row + 1, col + 1, Direction.EAST);
+//		WB = new Sensor(SENSOR_SR, row - 1, col - 1, Direction.WEST);
+//		WT = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.WEST);
 	}
 
 	public void setRobotPos(int row, int col) {
@@ -181,7 +191,7 @@ public class Robot {
 	
 	public void notifyChange() {
 		for (RobotInterface listener : listeners)
-			listener.onRobotMove();
+			Platform.runLater(() -> listener.onRobotMove());
 	}
 	
 	public void updateSensorsLocation() {

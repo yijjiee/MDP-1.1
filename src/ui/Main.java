@@ -73,6 +73,8 @@ public class Main extends Application {
 			
 			Main application = Main.getCurrentApplication();
 			MainController mainMgr = new MainController();
+			mainMgr.setMdf1(mdf1.getText());
+			mainMgr.setMdf2(mdf2.getText());
 			MapController mapMgr = new MapController(application, primaryStage, mainMgr);
 			
 			primaryStage.show();
