@@ -48,7 +48,6 @@ public class MainController {
 		map = new MapModel();
 		robot = new Robot(1, 1, RobotState.SIMULATION);
 		commsMgr = new CommsController();
-		commsMgr.startConnection();
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				commsMgr.startConnection();

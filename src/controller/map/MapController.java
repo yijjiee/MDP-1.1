@@ -95,8 +95,8 @@ public class MapController {
 		mainMgr.setMdf2(mdf2);
 		
 //		if (mainMgr.getCommsMgr() != null && mainMgr.getCommsMgr().isConnected()) {
-//			mainMgr.getCommsMgr().sendMessage("mdf1: " + mdf1, CommsModel.MSG_TO_ANDROID);
-//			mainMgr.getCommsMgr().sendMessage("mdf2: " + mdf2, CommsModel.MSG_TO_ANDROID);
+//			mainMgr.getCommsMgr().sendMessage("mdf1:" + mdf1 + "/", CommsModel.MSG_TO_ANDROID);
+//			mainMgr.getCommsMgr().sendMessage("mdf2:" + mdf2 + "/", CommsModel.MSG_TO_ANDROID);
 //		}
 		
 		Platform.runLater(() -> pane.setStyle(stylesheet));
