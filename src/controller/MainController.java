@@ -43,33 +43,41 @@ public class MainController {
 	private String mdf1;
 	private String mdf2;
 	
+	private boolean simulation = true;
+	
 	public MainController() {
 		mapListeners = new ArrayList<>();
 		map = new MapModel();
 		robot = new Robot(1, 1, RobotState.SIMULATION);
-		commsMgr = new CommsController();
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				commsMgr.startConnection();
-				String msg = null;
-				if (commsMgr.isConnected()) {
-					commsMgr.sendMessage("setrobot:1,1,1/", CommsModel.MSG_TO_ANDROID);
-					msg = commsMgr.startRecvMsg();
+		if (!simulation) {
+			commsMgr = new CommsController();
+			Thread t = new Thread(new Runnable() {
+				public void run() {
+					commsMgr.startConnection();
+					String msg = null;
+					if (commsMgr.isConnected()) {
+						commsMgr.sendMessage("setrobot:1,1,1/", CommsModel.MSG_TO_ANDROID);
+						msg = commsMgr.startRecvMsg();
+					}
+					
+					if (msg.equals(CommsModel.MSG_TO_ANDROID + "se")) {
+						robot.setState(RobotState.PHYSICAL);
+						explore();
+					}
 				}
-				
-				if (msg.equals(CommsModel.MSG_TO_ANDROID + "se")) {
-					robot.setState(RobotState.PHYSICAL);
-					explore();
-				}
-			}
-		});
-		t.start();
+			});
+			t.start();
+		}
 		
 		for (int i = 0; i < MapModel.MAP_ROWS; i++) {
 			for (int j = 0; j < MapModel.MAP_COLS; j++) {
 				map.setCellState(i, j, CellState.NORMAL);
 			}
 		}
+	}
+	
+	public boolean getSimulation() {
+		return simulation;
 	}
 
 	public void setMdf1(String mdf1) {

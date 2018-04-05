@@ -39,8 +39,6 @@ public class Exploration {
 	
 	private long startTime;
 	
-	private final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
-	
 	public Exploration(MapModel map, Robot robot, double timeLimit, double coverageLimit) {
 		this.map = map;
 		this.robot = robot;
@@ -275,7 +273,7 @@ public class Exploration {
 			}
 			robot.move(Movement.FORWARD);
 		}
-		if (commsMgr.isConnected() && robot.getState() == RobotState.PHYSICAL) {
+		if (commsMgr != null && robot.getState() == RobotState.PHYSICAL) {
 			String rDir = "";
 			switch(robot.getRobotDir()) {
 				case NORTH:

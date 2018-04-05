@@ -257,7 +257,10 @@ public class MapController {
 				StackPane.setAlignment(robotHead, Pos.CENTER_LEFT);
 				break;
 		}
-		mainMgr.getRobot().sense(null, mainMgr.getMap());
+		if (mainMgr.getSimulation())
+			mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
+		else
+			mainMgr.getRobot().sense(null, mainMgr.getMap());
 	}
 	
 	public String toString(MapDescriptorFormat format) {

@@ -125,7 +125,7 @@ public class Sensor {
 	 * @param colInc
 	 * @return
 	 */
-	public void getObstacle(MapModel map, int rowInc, int colInc) {	
+	public void getObstacle(MapModel map, int rowInc, int colInc) {
 		if (range == -1) {
 			int x = col + Math.abs(range*colInc);
 			int y = row + Math.abs(range*rowInc);
