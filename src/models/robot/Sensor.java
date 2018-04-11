@@ -1,7 +1,7 @@
 package models.robot;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 
 import models.map.CellState;
 import models.map.MapModel;
@@ -11,7 +11,7 @@ public class Sensor {
 	private int row;
 	private int col;
 	private Direction sensorFace;
-	private static Set<int[]> moveHistory;
+	private static ArrayList<Position> moveHistory;
 	
 	public int getRange() {
 		return range;
@@ -38,7 +38,7 @@ public class Sensor {
 	}
 	
 	public static void addPos(int row, int col) {
-		moveHistory.add(new int[] { row, col });
+		moveHistory.add(new Position(row, col));
 	}
 
 	public Direction getSensorFace() {
@@ -54,7 +54,7 @@ public class Sensor {
 		this.row = row;
 		this.col = col;
 		this.sensorFace = sensorFace;
-		moveHistory = new HashSet<>();
+		moveHistory = new ArrayList<>();
 	}
 	
 	public void setSensor(int row, int col, Direction sensorFace) {
@@ -142,6 +142,7 @@ public class Sensor {
 			if ((x >= 0 && x <= 14) && (y >= 0 && y <= 19))
 				map.setCellState(y, x, CellState.NORMAL);
 		} else {
+			boolean visited = false;
 			for (int i = 1; i <= range; i++) {
 				int x = col + (colInc*i);
 				int y = row + (rowInc*i);
@@ -150,12 +151,20 @@ public class Sensor {
 					continue;
 				
 				map.setCellState(y, x, CellState.NORMAL);
-	
-				if (moveHistory.contains(new int[] { row, col }))
-					continue;
 				
 				if (i == range) {
-					map.setCellState(y, x, CellState.OBSTACLE);
+					for (int j = 0; j < moveHistory.size(); j++) {
+						int histRow = moveHistory.get(j).getRow();
+						int histCol = moveHistory.get(j).getCol();
+						
+						if (y >= histRow - 1 && y <= histRow + 1 && x >= histCol - 1 && x <= histCol + 1) {
+							visited = true;
+							break;
+						}
+					}
+					
+					if (!visited)
+						map.setCellState(y, x, CellState.OBSTACLE);
 				}
 			}
 		}

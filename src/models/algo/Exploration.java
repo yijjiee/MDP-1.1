@@ -254,23 +254,25 @@ public class Exploration {
 	
 	private void doNextMove() {
 		if (!checkLeftObstacle()) {
+			robot.move(Movement.TURNLEFT);
+			robot.move(Movement.FORWARD);
+			
 			if (commsMgr != null) {
 				commsMgr.sendMessage("l", CommsModel.MSG_TO_BOT);
 				doAction(commsMgr.startRecvMsg());
 				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
 			}
-			robot.move(Movement.TURNLEFT);
-			robot.move(Movement.FORWARD);
 		} else if (checkForwardObstacle()) {
+			robot.move(Movement.TURNRIGHT);
+			
 			if (commsMgr != null) {
 				commsMgr.sendMessage("r", CommsModel.MSG_TO_BOT);
 			}
-			robot.move(Movement.TURNRIGHT);
 		} else {
+			robot.move(Movement.FORWARD);
 			if (commsMgr != null) {
 				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
 			}
-			robot.move(Movement.FORWARD);
 		}
 		if (commsMgr != null && robot.getState() == RobotState.PHYSICAL) {
 			String rDir = "";
@@ -327,7 +329,6 @@ public class Exploration {
 				robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
 			}
 			
-			robot.updateSensorsLocation();
 			robot.sense(null, map);
 		}
 	}
