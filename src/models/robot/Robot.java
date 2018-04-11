@@ -11,7 +11,6 @@ import java.util.List;
 
 import interfaces.RobotInterface;
 import javafx.application.Platform;
-import models.map.CellState;
 import models.map.MapModel;
 
 public class Robot {
@@ -159,7 +158,8 @@ public class Robot {
 						robotDir = Direction.NORTH; break;
 				} break;
 		}
-
+		
+		Sensor.addPos(row, col);
 		updateSensorsLocation();
 		notifyChange();
 		

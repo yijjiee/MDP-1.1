@@ -259,8 +259,9 @@ public class MapController {
 		}
 		if (mainMgr.getSimulation())
 			mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
-		else
+		else {
 			mainMgr.getRobot().sense(null, mainMgr.getMap());
+		}
 	}
 	
 	public String toString(MapDescriptorFormat format) {

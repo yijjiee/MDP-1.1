@@ -1,5 +1,8 @@
 package models.robot;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import models.map.CellState;
 import models.map.MapModel;
 
@@ -8,6 +11,7 @@ public class Sensor {
 	private int row;
 	private int col;
 	private Direction sensorFace;
+	private static Set<int[]> moveHistory;
 	
 	public int getRange() {
 		return range;
@@ -32,6 +36,10 @@ public class Sensor {
 	public void setCol(int col) {
 		this.col = col;
 	}
+	
+	public static void addPos(int row, int col) {
+		moveHistory.add(new int[] { row, col });
+	}
 
 	public Direction getSensorFace() {
 		return sensorFace;
@@ -46,6 +54,7 @@ public class Sensor {
 		this.row = row;
 		this.col = col;
 		this.sensorFace = sensorFace;
+		moveHistory = new HashSet<>();
 	}
 	
 	public void setSensor(int row, int col, Direction sensorFace) {
@@ -142,6 +151,9 @@ public class Sensor {
 				
 				map.setCellState(y, x, CellState.NORMAL);
 	
+				if (moveHistory.contains(new int[] { row, col }))
+					continue;
+				
 				if (i == range) {
 					map.setCellState(y, x, CellState.OBSTACLE);
 				}

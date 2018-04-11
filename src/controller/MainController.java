@@ -43,7 +43,7 @@ public class MainController {
 	private String mdf1;
 	private String mdf2;
 	
-	private boolean simulation = true;
+	private boolean simulation = false;
 	
 	public MainController() {
 		mapListeners = new ArrayList<>();
