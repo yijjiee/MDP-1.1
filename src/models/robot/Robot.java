@@ -43,6 +43,7 @@ public class Robot {
 		ET = new Sensor(SENSOR_LR, row + 1, col + 1, Direction.EAST);
 		WB = new Sensor(SENSOR_SR, row - 1, col - 1, Direction.WEST);
 		WT = new Sensor(SENSOR_SR, row + 1, col - 1, Direction.WEST);
+		Sensor.addPos(1, 1);
 		
 //		robotDir = Direction.NORTH;
 //		
@@ -81,6 +82,10 @@ public class Robot {
 	
 	public void setState(RobotState state) {
 		this.state = state;
+	}
+	
+	public void setRobotDir(Direction robotDir) {
+		this.robotDir = robotDir;
 	}
 	
 	public Direction getRobotDir() {

@@ -34,6 +34,7 @@ public class Exploration {
 	private FastestPath fastestPathModel;
 	private LinkedList<Movement> movements;
 	private CommsController commsMgr;
+	private int e2moves = 0;
 	
 	private Timer timer;
 	
@@ -55,6 +56,7 @@ public class Exploration {
 	}
 	
 	public void startExploration() {
+		System.out.println("Exploration Started.");
 		if (robot.getState() == RobotState.PHYSICAL) {
 			/*
 			 * Exploration with Physical Robot
@@ -84,10 +86,21 @@ public class Exploration {
 						startFastestPath();
 						while (!movements.isEmpty())
 							robot.move(movements.pop());
-						System.out.println("Exploration Ended.");
 					}
 				}
-			}			
+			}
+			switch(robot.getRobotDir()) {
+				case WEST: robot.move(Movement.TURNRIGHT); commsMgr.sendMessage("ry", CommsModel.MSG_TO_BOT); break;
+				case SOUTH: robot.move(Movement.TURNRIGHT); robot.move(Movement.TURNRIGHT); commsMgr.sendMessage("rry", CommsModel.MSG_TO_BOT); break;
+				case EAST:
+					break;
+				case NORTH:
+					break;
+				default:
+					break;
+			}
+			System.out.println("Exploration Ended.");		
+			
 		} else if (robot.getState() == RobotState.SIMULATION) {
 			NL = robot.getNL();
 			NC = robot.getNC();
@@ -99,8 +112,7 @@ public class Exploration {
 			
 			timer = new Timer();
 			timer.schedule(explore, 500, 150);
-		}		
-		System.out.println("Exploration Started.");
+		}
 	}
 	
 	private final TimerTask explore = new TimerTask() {
@@ -255,13 +267,18 @@ public class Exploration {
 	private void doNextMove() {
 		if (!checkLeftObstacle()) {
 			robot.move(Movement.TURNLEFT);
-			robot.move(Movement.FORWARD);
-			
 			if (commsMgr != null) {
 				commsMgr.sendMessage("l", CommsModel.MSG_TO_BOT);
 				doAction(commsMgr.startRecvMsg());
+			}
+			
+			robot.move(Movement.FORWARD);
+			e2moves++;
+			
+			if (commsMgr != null) {
 				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
 			}
+			
 		} else if (checkForwardObstacle()) {
 			robot.move(Movement.TURNRIGHT);
 			
@@ -272,6 +289,7 @@ public class Exploration {
 			robot.move(Movement.FORWARD);
 			if (commsMgr != null) {
 				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
+				e2moves++;
 			}
 		}
 		if (commsMgr != null && robot.getState() == RobotState.PHYSICAL) {
@@ -292,6 +310,11 @@ public class Exploration {
 			}
 			commsMgr.sendMessage("setrobot:" + robot.getCol() + "," + robot.getRow() + "," + rDir + "/", CommsModel.MSG_TO_ANDROID);
 			doAction(commsMgr.startRecvMsg());
+		}
+		for (int row = -1; row < 2; row++) {
+			for (int col = -1; col < 2; col++) {
+				map.setCellState(robot.getRow()+row, robot.getCol()+col, CellState.NORMAL);
+			}
 		}
 	}
 	
@@ -317,7 +340,7 @@ public class Exploration {
 				robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
 			}
 			
-			if (Integer.valueOf(sensorsData[4]) == 1 && Integer.valueOf(sensorsData[5]) == 1) {
+			else if (Integer.valueOf(sensorsData[4]) == 1 && Integer.valueOf(sensorsData[5]) == 1 && e2moves%2 == 0) {
 				commsMgr.sendMessage("y", CommsModel.MSG_TO_BOT);
 				rtnMsg = commsMgr.startRecvMsg();
 				sensorsData = rtnMsg.split(";");
@@ -327,6 +350,7 @@ public class Exploration {
 				robot.getET().setRange(Integer.valueOf(sensorsData[3]));
 				robot.getWB().setRange(Integer.valueOf(sensorsData[4]));
 				robot.getWT().setRange(Integer.valueOf(sensorsData[5]));
+				e2moves = 0;
 			}
 			
 			robot.sense(null, map);

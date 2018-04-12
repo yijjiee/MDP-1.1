@@ -31,6 +31,7 @@ import models.comms.CommsModel;
 import models.map.CellState;
 import models.map.MapDescriptorFormat;
 import models.map.MapModel;
+import models.robot.Position;
 import models.robot.RobotState;
 import ui.Main;
 
@@ -94,11 +95,6 @@ public class MapController {
 		mainMgr.setMdf1(mdf1);
 		mainMgr.setMdf2(mdf2);
 		
-//		if (mainMgr.getCommsMgr() != null && mainMgr.getCommsMgr().isConnected()) {
-//			mainMgr.getCommsMgr().sendMessage("mdf1:" + mdf1 + "/", CommsModel.MSG_TO_ANDROID);
-//			mainMgr.getCommsMgr().sendMessage("mdf2:" + mdf2 + "/", CommsModel.MSG_TO_ANDROID);
-//		}
-		
 		Platform.runLater(() -> pane.setStyle(stylesheet));
 		Platform.runLater(() -> application.getMdf1().setText(mdf1));
 		Platform.runLater(() -> application.getMdf2().setText(mdf2));
@@ -124,6 +120,7 @@ public class MapController {
 						Pane cell = (Pane)event.getSource();
 						int row = MapModel.MAP_ROWS - GridPane.getRowIndex(cell) - 1;
 						int col = GridPane.getColumnIndex(cell);
+						mainMgr.setWayPoint(new Position(row, col));
 						if(map.getCellState(row, col) == CellState.WAYPOINT)
 							map.setCellState(row, col, CellState.NORMAL);
 						else
@@ -261,6 +258,14 @@ public class MapController {
 			mainMgr.getRobot().sense(mainMgr.getCachedMap(), mainMgr.getMap());
 		else {
 			mainMgr.getRobot().sense(null, mainMgr.getMap());
+		}
+		
+		String mdf1 = toString(MapDescriptorFormat.MDF1);
+		String mdf2 = toString(MapDescriptorFormat.MDF2);
+		
+		if (mainMgr.getCommsMgr() != null) {
+			mainMgr.getCommsMgr().sendMessage("mdf1:" + mdf1 + "/", CommsModel.MSG_TO_ANDROID);
+			mainMgr.getCommsMgr().sendMessage("mdf2:" + mdf2 + "/", CommsModel.MSG_TO_ANDROID);
 		}
 	}
 	

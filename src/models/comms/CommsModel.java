@@ -76,8 +76,6 @@ public class CommsModel {
 
 	public void sendMsg(String msg) {
         try {
-            System.out.println("Sending Message: " + msg);
-
             writer.write(msg);
             writer.flush();
         } catch (IOException e) {

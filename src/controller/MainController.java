@@ -18,6 +18,7 @@ import models.map.CellState;
 import models.map.MapModel;
 import models.robot.Direction;
 import models.robot.Movement;
+import models.robot.Position;
 import models.robot.Robot;
 import models.robot.RobotState;
 import ui.Main;
@@ -30,6 +31,7 @@ public class MainController {
 	private Robot robot;
 	private Exploration exploration;
 	private FastestPath fastestPathModel;
+	private Position wayPoint;
 	
 	private CommsController commsMgr;
 	
@@ -43,7 +45,7 @@ public class MainController {
 	private String mdf1;
 	private String mdf2;
 	
-	private boolean simulation = true;
+	private boolean simulation = false;
 	
 	public MainController() {
 		mapListeners = new ArrayList<>();
@@ -63,6 +65,20 @@ public class MainController {
 					if (msg.equals(CommsModel.MSG_TO_ANDROID + "se")) {
 						robot.setState(RobotState.PHYSICAL);
 						explore();
+						msg = commsMgr.startRecvMsg();
+					}
+					
+					if (msg.contains("#wp:")) {
+						msg = msg.substring(4, msg.length());
+						String [] wpPos = msg.split(",");
+						map.setCellState(Integer.valueOf(wpPos[0]), Integer.valueOf(wpPos[1]), CellState.WAYPOINT);
+						wayPoint = new Position(Integer.valueOf(wpPos[0]), Integer.valueOf(wpPos[1]));
+					}
+					
+					msg = commsMgr.startRecvMsg();
+					
+					if (msg.equals(CommsModel.MSG_TO_ANDROID + "sfp")) {
+						runFastestPath();
 					}
 				}
 			});
@@ -78,6 +94,10 @@ public class MainController {
 	
 	public boolean getSimulation() {
 		return simulation;
+	}
+	
+	public void setWayPoint(Position wayPoint) {
+		this.wayPoint = wayPoint;
 	}
 
 	public void setMdf1(String mdf1) {
@@ -209,23 +229,79 @@ public class MainController {
 	}
 	
 	public void runFastestPath() {
-		movements = new LinkedList<Movement>();
-		timer = new Timer();
-		Cell wayPoint = null;
-		for (int row = 0; row < MapModel.MAP_ROWS; row++) {
-			for (int col = 0; col < MapModel.MAP_COLS; col++) {
-				if (map.getCellState(row, col) == CellState.WAYPOINT)
-					wayPoint = map.getCell(row, col);
+		if (commsMgr != null) {
+			movements = new LinkedList<Movement>();
+			String moveStr = "";
+			if (wayPoint != null) {
+				fastestPathModel = new FastestPath(robot, wayPoint.getRow(), wayPoint.getCol(), transformMap(map));
+				fastestPath = fastestPathModel.startFastestPath();
+				Direction rDir = convertToDirection(fastestPath);
+				while (!movements.isEmpty()) {
+					switch(movements.pop()) {
+						case TURNLEFT: moveStr += "l"; robot.move(Movement.TURNLEFT); break;
+						case TURNRIGHT: moveStr += "r"; robot.move(Movement.TURNRIGHT); break;
+						case FORWARD: moveStr += "f"; robot.move(Movement.FORWARD); break;
+						case BACKWARD: moveStr += "b"; robot.move(Movement.BACKWARD); break;
+					}
+				}
+				System.out.println(moveStr);
+//				robot.setRobotPos(wayPoint.getRow(), wayPoint.getCol());
+//				robot.setRobotDir(rDir);
+//				robot.updateSensorsLocation();
+				movements.clear();
+				fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
+				fastestPath = fastestPathModel.startFastestPath();
+				rDir = convertToDirection(fastestPath);
+				while (!movements.isEmpty()) {
+					switch(movements.pop()) {
+						case TURNLEFT: moveStr += "l"; robot.move(Movement.TURNLEFT); break;
+						case TURNRIGHT: moveStr += "r"; robot.move(Movement.TURNRIGHT); break;
+						case FORWARD: moveStr += "f"; robot.move(Movement.FORWARD); break;
+						case BACKWARD: moveStr += "b"; robot.move(Movement.BACKWARD); break;
+					}
+				}
+				if (rDir == Direction.NORTH)
+					moveStr += "w";
+				else if (rDir == Direction.EAST)
+					moveStr += "u";
+				
+				commsMgr.sendMessage(moveStr, CommsModel.MSG_TO_BOT);
+			} else {
+				movements.clear();
+				fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
+				fastestPath = fastestPathModel.startFastestPath();
+				convertToDirection(fastestPath);
+				while (!movements.isEmpty()) {
+					switch(movements.pop()) {
+						case TURNLEFT: moveStr += "l"; break;
+						case TURNRIGHT: moveStr += "r"; break;
+						case FORWARD: moveStr += "f"; break;
+						case BACKWARD: moveStr += "b"; break;
+					}
+				}
+				System.out.println(moveStr);
+				commsMgr.sendMessage(moveStr, CommsModel.MSG_TO_BOT);
 			}
+			
+		} else {
+			movements = new LinkedList<Movement>();
+			timer = new Timer();
+			Cell wayPoint = null;
+			for (int row = 0; row < MapModel.MAP_ROWS; row++) {
+				for (int col = 0; col < MapModel.MAP_COLS; col++) {
+					if (map.getCellState(row, col) == CellState.WAYPOINT)
+						wayPoint = map.getCell(row, col);
+				}
+			}
+			
+			if (wayPoint != null)
+				fastestPathModel = new FastestPath(robot, wayPoint.getRow(), wayPoint.getCol(), transformMap(map));
+			else
+				fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
+			fastestPath = fastestPathModel.startFastestPath();
+			convertToDirection(fastestPath);
+			timer.schedule(moveToPoint, 500, 150);
 		}
-		
-		if (wayPoint != null)
-			fastestPathModel = new FastestPath(robot, wayPoint.getRow(), wayPoint.getCol(), transformMap(map));
-		else
-			fastestPathModel = new FastestPath(robot, MapModel.END_ROW, MapModel.END_COL, transformMap(map));
-		fastestPath = fastestPathModel.startFastestPath();
-		convertToDirection(fastestPath);
-		timer.schedule(moveToPoint, 500, 150);
 	}
 	
 	private final TimerTask moveToPoint = new TimerTask() {
@@ -272,32 +348,36 @@ public class MainController {
 
 		for (int i = 0; i < MapModel.MAP_ROWS; i++) {
 			for (int j = 0; j < MapModel.MAP_COLS; j++) {
-				if (i == 0 && map.getCellState(i, j) == CellState.OBSTACLE) {
+				if (i == 0 && (map.getCellState(i, j) == CellState.OBSTACLE || map.getCellState(i,j) == CellState.UNEXPLORED)) {
 					tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
 					tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
 					tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
 					tempMap.setCellState(i + 1, j + 1, CellState.OBSTACLE);
 					tempMap.setCellState(i + 1, j - 1, CellState.OBSTACLE);
-				} else if (i == 19 && map.getCellState(i, j) == CellState.OBSTACLE) {
-					tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
-					tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
+				} else if (i == 19 && (map.getCellState(i, j) == CellState.OBSTACLE || map.getCellState(i,j) == CellState.UNEXPLORED)) {
+					if (j < 15)
+						tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
+					if (j > 0)
+						tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
 					tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
-					tempMap.setCellState(i - 1, j + 1, CellState.OBSTACLE);
-					tempMap.setCellState(i - 1, j - 1, CellState.OBSTACLE);
-				} else if (j == 0 && i > 0 && i < 19 && map.getCellState(i, j) == CellState.OBSTACLE) {
+					if (j < 15)
+						tempMap.setCellState(i - 1, j + 1, CellState.OBSTACLE);
+					if (j > 0)
+						tempMap.setCellState(i - 1, j - 1, CellState.OBSTACLE);
+				} else if (j == 0 && i > 0 && i < 19 && (map.getCellState(i, j) == CellState.OBSTACLE || map.getCellState(i,j) == CellState.UNEXPLORED)) {
 					tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
 					tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
 					tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
 					tempMap.setCellState(i + 1, j + 1, CellState.OBSTACLE);
 					tempMap.setCellState(i - 1, j + 1, CellState.OBSTACLE);
-				} else if (j == 14 && i > 0 && i < 19 && map.getCellState(i, j) == CellState.OBSTACLE) {
+				} else if (j == 14 && i > 0 && i < 19 && (map.getCellState(i, j) == CellState.OBSTACLE || map.getCellState(i,j) == CellState.UNEXPLORED)) {
 					tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
 					tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
 					tempMap.setCellState(i, j - 1, CellState.OBSTACLE);
 					tempMap.setCellState(i + 1, j - 1, CellState.OBSTACLE);
 					tempMap.setCellState(i - 1, j - 1, CellState.OBSTACLE);
 				} else {
-					if (map.getCellState(i, j) == CellState.OBSTACLE) {
+					if ((map.getCellState(i, j) == CellState.OBSTACLE || map.getCellState(i,j) == CellState.UNEXPLORED)) {
 						tempMap.setCellState(i + 1, j, CellState.OBSTACLE);
 						tempMap.setCellState(i - 1, j, CellState.OBSTACLE);
 						tempMap.setCellState(i, j + 1, CellState.OBSTACLE);
@@ -313,7 +393,7 @@ public class MainController {
 		return tempMap;
 	}
 	
-	private void convertToDirection(Stack<Cell> path) {
+	private Direction convertToDirection(Stack<Cell> path) {
 		int robotRow = robot.getRow();
 		int robotCol = robot.getCol();
 		Direction robotDir = robot.getRobotDir();
@@ -329,6 +409,7 @@ public class MainController {
 			robotDir = getMovementFromPos(rowDiff, colDiff, robotDir);
 		}
 		System.out.println("End of Converting Path");
+		return robotDir;
 	}
 	
 	private Direction getMovementFromPos(int rowDiff, int colDiff, Direction robotDir) {

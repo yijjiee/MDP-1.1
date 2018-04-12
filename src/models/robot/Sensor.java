@@ -167,6 +167,7 @@ public class Sensor {
 						map.setCellState(y, x, CellState.OBSTACLE);
 				}
 			}
+			range = -1;
 		}
 	}
 }
