@@ -35,6 +35,7 @@ public class Exploration {
 	private LinkedList<Movement> movements;
 	private CommsController commsMgr;
 	private int e2moves = 0;
+	private int loopCount = 0;
 	
 	private Timer timer;
 	
@@ -266,31 +267,36 @@ public class Exploration {
 	
 	private void doNextMove() {
 		if (!checkLeftObstacle()) {
-			robot.move(Movement.TURNLEFT);
-			if (commsMgr != null) {
-				commsMgr.sendMessage("l", CommsModel.MSG_TO_BOT);
-				doAction(commsMgr.startRecvMsg());
+			if (loopCount < 4) {
+				robot.move(Movement.TURNLEFT);
+				if (commsMgr != null) {
+					commsMgr.sendMessage("l", CommsModel.MSG_TO_BOT);
+					doAction(commsMgr.startRecvMsg());
+				}
 			}
 			
-			robot.move(Movement.FORWARD);
+			robot.move(Movement.FORWARD); 
 			e2moves++;
 			
 			if (commsMgr != null) {
 				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
 			}
 			
+			loopCount++;
 		} else if (checkForwardObstacle()) {
 			robot.move(Movement.TURNRIGHT);
 			
 			if (commsMgr != null) {
 				commsMgr.sendMessage("r", CommsModel.MSG_TO_BOT);
 			}
+			loopCount = 0;
 		} else {
 			robot.move(Movement.FORWARD);
 			if (commsMgr != null) {
 				commsMgr.sendMessage("f", CommsModel.MSG_TO_BOT);
 				e2moves++;
 			}
+			loopCount = 0;
 		}
 		if (commsMgr != null && robot.getState() == RobotState.PHYSICAL) {
 			String rDir = "";
